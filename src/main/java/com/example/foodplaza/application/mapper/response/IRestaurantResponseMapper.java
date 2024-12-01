@@ -1,4 +1,4 @@
-package com.example.foodplaza.application.mapper;
+package com.example.foodplaza.application.mapper.response;
 
 import com.example.foodplaza.application.dto.response.RestaurantResponseDto;
 import com.example.foodplaza.domain.model.RestaurantModel;

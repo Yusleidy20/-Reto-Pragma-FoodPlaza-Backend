@@ -42,18 +42,11 @@ public class RestaurantUseCase implements IRestaurantServicePort {
                 throw new UserNotExistException("El propietario no existe.");
             }
 
-            // Validar que el propietario no tenga otro restaurante
-            RestaurantModel existingRestaurant = restaurantPersistencePort.getRestaurantByIdOwner(restaurantModel.getOwnerId());
-            if (existingRestaurant != null) {
-                log.error("El propietario con ID {} ya tiene un restaurante registrado.", restaurantModel.getOwnerId());
-                throw new OwnerMustOnlyOwnARestaurantException("El propietario solo puede tener un restaurante.");
-            }
-
             // Guardar el restaurante
             RestaurantModel savedRestaurant = restaurantPersistencePort.saveRestaurant(restaurantModel);
             log.info("Restaurante guardado exitosamente: {}", savedRestaurant);
 
-        } catch (UserNotExistException | OwnerMustOnlyOwnARestaurantException e) {
+        } catch (UserNotExistException e) {
             log.error("Error de validación al guardar restaurante: {}", e.getMessage(), e);
             throw e;
         } catch (Exception e) {
