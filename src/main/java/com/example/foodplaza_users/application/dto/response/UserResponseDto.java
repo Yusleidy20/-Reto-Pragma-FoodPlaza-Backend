@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {
+    private Long userId;
     private String nameUser;
     private String lastname;
     private Long docId;
@@ -19,5 +20,6 @@ public class UserResponseDto {
     private LocalDate birthDate;
     private String email;
     private String passwordUser;
-    private RoleResponseDto userRole;
+    private Long idUserRole;
+
 }

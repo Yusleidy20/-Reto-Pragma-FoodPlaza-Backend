@@ -1,7 +1,6 @@
 package com.example.foodplaza_users.application.dto.resquest;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -22,7 +21,7 @@ public class UserRequestDto {
 
     @NotEmpty(message = "Last name is required")
     private String lastname;
-    @NotBlank(message = "The Identity document is required")
+    @NotNull(message = "The Identity document is required")
     @Pattern(regexp = "\\d+", message = "The Identity Document must be numeric")
     private Long docId;
 

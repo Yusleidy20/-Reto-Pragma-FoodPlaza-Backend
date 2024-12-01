@@ -42,24 +42,20 @@ public class UserUseCase implements IUserServicePort {
     }
 
     private void assignRole(UserModel userModel) {
-        if (userModel.getUserRole() == null) {
-            userModel.setUserRole(new UserRole());
-        }
-        UserRole userRole = userModel.getUserRole();
-        if (userRole.getNameRole() == null) {
+        if (userModel.getUserRole() == null || userModel.getUserRole().getIdUserRole() == null) {
             throw new IllegalArgumentException("The user role must be specified correctly.");
         }
 
-        if (userRole.getNameRole().equalsIgnoreCase(Constants.ROLE_ADMIN)) {
-            userRole.setIdUserRole(Constants.ADMIN_ROLE_ID);
-        } else if (userRole.getNameRole().equalsIgnoreCase(Constants.ROLE_OWNER)) {
-            userRole.setIdUserRole(Constants.OWNER_ROLE_ID);
+        Long idUserRole = userModel.getUserRole().getIdUserRole();
+        if (idUserRole.equals(Constants.ADMIN_ROLE_ID)) {
+            userModel.getUserRole().setNameRole(Constants.ROLE_ADMIN);
+        } else if (idUserRole.equals(Constants.OWNER_ROLE_ID)) {
+            userModel.getUserRole().setNameRole(Constants.ROLE_OWNER);
         } else {
-            throw new IllegalArgumentException("The role must be ADMINISTRATOR or OWNER..");
+            throw new IllegalArgumentException("The role must be ADMINISTRATOR or OWNER.");
         }
-
-        userModel.setUserRole(userRole);
     }
+
 
 
 

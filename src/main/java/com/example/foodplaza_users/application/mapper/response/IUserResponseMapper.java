@@ -10,8 +10,6 @@ import org.mapstruct.ReportingPolicy;
         unmappedSourcePolicy = ReportingPolicy.IGNORE,
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IUserResponseMapper {
-    @Mapping(source = "userRole.idUserRole", target = "userRole.idUserRole")
-    @Mapping(source = "userRole.nameRole", target = "userRole.nameRole")
-    @Mapping(source = "userRole.descriptionRole", target = "userRole.descriptionRole")
+
     UserResponseDto toUserResponse(UserModel userModel);
 }

@@ -1,6 +1,7 @@
 package com.example.foodplaza_users.application.mapper.request;
 
 
+import com.example.foodplaza_users.application.dto.resquest.UserRequestDto;
 import com.example.foodplaza_users.domain.model.UserModel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,6 +12,7 @@ import org.mapstruct.ReportingPolicy;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IUserRequestMapper {
     @Mapping(source = "birthDate", target = "birthDate")
-    UserModel toUser(UserModel userRequestDto);
+    @Mapping(source = "idUserRole", target = "userRole.idUserRole")  // Mapea idUserRole al campo anidado
+    UserModel toUserModel(UserRequestDto userRequestDto);
 }
 

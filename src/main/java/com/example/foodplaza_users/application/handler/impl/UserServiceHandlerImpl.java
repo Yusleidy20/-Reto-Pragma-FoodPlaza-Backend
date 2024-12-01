@@ -1,6 +1,7 @@
 package com.example.foodplaza_users.application.handler.impl;
 
 import com.example.foodplaza_users.application.dto.response.UserResponseDto;
+import com.example.foodplaza_users.application.dto.resquest.UserRequestDto;
 import com.example.foodplaza_users.application.handler.IUserServiceHandler;
 import com.example.foodplaza_users.application.mapper.request.IUserRequestMapper;
 import com.example.foodplaza_users.application.mapper.response.IUserResponseMapper;
@@ -25,9 +26,11 @@ public class UserServiceHandlerImpl implements IUserServiceHandler {
     private static final Logger log = LoggerFactory.getLogger(UserServiceHandlerImpl.class);
 
     @Override
-    public void saveUser(UserModel userModel) {
-        UserModel userMo = userRequestMapper.toUser(userModel);
-        userServicePort.saveUser(userMo);
+    public void saveUser(UserRequestDto userRequestDto) {
+        log.info("Mapper: Mapeando UserRequestDto a userModel...");
+        UserModel userModel = userRequestMapper.toUserModel(userRequestDto);
+        log.info("Resultado del mapper: {}", userModel);
+        userServicePort.saveUser(userModel);
     }
 
     @Override
@@ -42,21 +45,16 @@ public class UserServiceHandlerImpl implements IUserServiceHandler {
 
     @Override
     public UserResponseDto getUserById(Long userId) {
-        // Obtén el modelo completo
-        UserModel userModel = userServicePort.findById(userId);
-
-        // Mapea el modelo a DTO
-        UserResponseDto userResponseDto = userResponseMapper.toUserResponse(userModel);
-
-        // Log para depuración
-        log.info("Usuario mapeado a DTO con rol: {}", userResponseDto);
-
-        return userResponseDto;
+        return userResponseMapper.toUserResponse(userServicePort.findById(userId));
     }
 
     @Override
     public UserResponseDto getUserByEmail(String email) {
         return userResponseMapper.toUserResponse(userServicePort.findByEmail(email));
+    }
+    public boolean isAdmin(Long userId) {
+        UserModel user = getUserId(userId);
+        return user.getUserRole() != null && user.getUserRole().getNameRole().equalsIgnoreCase("Administrator");
     }
 
 
