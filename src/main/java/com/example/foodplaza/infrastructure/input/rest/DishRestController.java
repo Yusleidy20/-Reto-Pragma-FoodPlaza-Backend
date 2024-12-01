@@ -1,19 +1,17 @@
 package com.example.foodplaza.infrastructure.input.rest;
 
 import com.example.foodplaza.application.dto.request.DishRequestDto;
+import com.example.foodplaza.application.dto.request.DishUpdateRequestDto;
 import com.example.foodplaza.application.handler.IDishHandlerPort;
 import com.example.foodplaza.domain.exception.ResourceNotFoundException;
-import com.example.foodplaza.infrastructure.configuration.IUserFeignClient;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/user-micro/foodplaza")
@@ -25,30 +23,41 @@ public class DishRestController {
 
     @PostMapping("/dish")
     public ResponseEntity<String> createDish(
-            @Valid @RequestBody DishRequestDto dishRequestDto) {  // Aquí recibimos el DTO con todos los datos
-        log.info("Datos recibidos en DishRequestDto: {}", dishRequestDto);
+            @Valid @RequestBody DishRequestDto dishRequestDto) {
+        log.info("Data received in DishRequestDto: {}", dishRequestDto);
 
         // Validaciones iniciales
         if (dishRequestDto.getNameDish() == null || dishRequestDto.getNameDish().isEmpty()) {
-            log.warn("Name no proporcionada.");
-            return ResponseEntity.badRequest().body("El nombre del plato es requerido.");
+            log.warn("Name not provided.");
+            return ResponseEntity.badRequest().body("The name of the dish is required.");
         }
         if (dishRequestDto.getIdRestaurant() == null || dishRequestDto.getIdRestaurant() <= 0) {
-            log.warn("ID del restaurante inválido.");
-            return ResponseEntity.badRequest().body("El ID del restaurante es inválido.");
+            log.warn("Invalid restaurant ID.");
+            return ResponseEntity.badRequest().body("The restaurant ID is invalid.");
         }
 
         try {
             dishHandlerPort.createDish(dishRequestDto);
-            log.info("Plato registrado exitosamente.");
-            return new ResponseEntity<>("Plato creado exitosamente.", HttpStatus.CREATED);
+            log.info("Dish registered successfully.");
+            return new ResponseEntity<>("Dish created successfully.", HttpStatus.CREATED);
         } catch (ResourceNotFoundException e) {
-            log.error("Error: Restaurante no encontrado.", e);
+            log.error("Error: Restaurant not found.", e);
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            log.error("Error inesperado al registrar Plato", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el Plato.");
+            log.error("Unexpected error registering Plato", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating Dish.");
         }
+    }
+    @PutMapping("/dish/{id}")
+    public ResponseEntity<String> updateDish(
+            @PathVariable Long id,
+            @RequestBody @Valid DishUpdateRequestDto dishUpdateDto) {
+        log.info("Request to update dish with ID {}: {}", id, dishUpdateDto);
+
+        // Llamar al handler para actualizar el plato
+        dishHandlerPort.updateDish(id, dishUpdateDto);
+        log.info("Dish updated successfully.");
+        return ResponseEntity.ok("Dish updated successfully.");
     }
 
 

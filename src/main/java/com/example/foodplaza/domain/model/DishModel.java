@@ -15,7 +15,7 @@ public class DishModel {
     private String urlImage;
     private String category;
     private Long idRestaurant;
-    private Boolean active;  // Aquí es 'active'
+    private Boolean active;
 
 
 

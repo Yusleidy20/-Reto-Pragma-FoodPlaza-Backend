@@ -2,7 +2,6 @@ package com.example.foodplaza.infrastructure.out.jpa.adapter;
 
 import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
-import com.example.foodplaza.infrastructure.input.rest.RestaurantRestController;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IRestaurantEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepositoryMySql;
@@ -21,7 +20,7 @@ public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
     @Override
     public RestaurantModel saveRestaurant(RestaurantModel restaurantModel) {
         RestaurantEntity restaurantEntity = restaurantRepositoryMySql.save(restaurantEntityMapper.toRestaurantEntity(restaurantModel));
-        log.info("Entidad mapeada antes de guardar: {}", restaurantEntity);
+        log.info("Entity mapped before saving: {}", restaurantEntity);
         return restaurantEntityMapper.toRestaurantModel(restaurantEntity);
     }
 

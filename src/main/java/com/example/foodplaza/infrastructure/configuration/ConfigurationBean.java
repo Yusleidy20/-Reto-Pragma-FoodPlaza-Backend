@@ -12,6 +12,7 @@ import com.example.foodplaza.infrastructure.out.jpa.adapter.DishAdapterImpl;
 import com.example.foodplaza.infrastructure.out.jpa.adapter.RestaurantAdapterImpl;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter.UserFeignAdapter;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserDtoMapper;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IDishEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IRestaurantEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepositoryMySql;

@@ -1,6 +1,7 @@
 package com.example.foodplaza.domain.usecase;
 
 import com.example.foodplaza.domain.api.IDishServicePort;
+import com.example.foodplaza.domain.exception.ResourceNotFoundException;
 import com.example.foodplaza.domain.model.DishModel;
 import com.example.foodplaza.domain.spi.persistence.IDishPersistencePort;
 import org.slf4j.Logger;
@@ -17,14 +18,25 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public void saveDish(DishModel dishModel) {
-        log.info("Servicio: Guardando plato: {}", dishModel);
         dishModel.setActive(true);
         dishPersistencePort.saveDish(dishModel);
-        log.info("Servicio: Plato guardado correctamente.");
     }
+    @Override
+    public void updateDish(DishModel dishModel) {
+        // Buscar el plato actual
+        DishModel existingDish = dishPersistencePort.getDishById(dishModel.getIdDish());
+        if (existingDish == null) {
+            throw new ResourceNotFoundException("Dish not found with ID: " + dishModel.getIdDish());
+        }
 
+        existingDish.setPrice(dishModel.getPrice());
+        existingDish.setDescription(dishModel.getDescription());
+
+        dishPersistencePort.updateDish(existingDish);
+        log.info("Dish update correctly: {}", existingDish);
+    }
     @Override
     public DishModel getDishById(Long idDish) {
-        return dishPersistencePort.findDishById(idDish);
+        return dishPersistencePort.getDishById(idDish);
     }
 }

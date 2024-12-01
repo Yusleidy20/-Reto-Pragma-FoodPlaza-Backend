@@ -2,7 +2,7 @@ package com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter;
 
 import com.example.foodplaza.domain.model.UserModel;
 import com.example.foodplaza.domain.spi.feignclients.IUserFeignClientPort;
-import com.example.foodplaza.infrastructure.configuration.IUserFeignClient;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.UserDto;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserDtoMapper;
 import lombok.RequiredArgsConstructor;

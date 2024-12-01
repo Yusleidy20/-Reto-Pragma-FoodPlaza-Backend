@@ -1,11 +1,9 @@
 package com.example.foodplaza.domain.usecase;
 
 import com.example.foodplaza.domain.api.IRestaurantServicePort;
-import com.example.foodplaza.domain.exception.OwnerMustOnlyOwnARestaurantException;
-import com.example.foodplaza.domain.exception.UserMustBeOwnerException;
+
 import com.example.foodplaza.domain.exception.UserNotExistException;
 import com.example.foodplaza.domain.model.RestaurantModel;
-import com.example.foodplaza.domain.model.UserModel;
 import com.example.foodplaza.domain.spi.feignclients.IUserFeignClientPort;
 import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
 import org.slf4j.Logger;
@@ -26,34 +24,25 @@ public class RestaurantUseCase implements IRestaurantServicePort {
 
     @Override
     public void saveRestaurant(RestaurantModel restaurantModel) {
-        log.info("Datos recibidos en RestaurantModel: {}", restaurantModel);
+        log.info("Data received in RestaurantModel: {}", restaurantModel);
 
         // Validar que el propietario no sea nulo
         if (restaurantModel.getOwnerId() == null) {
-            log.error("El ID del propietario no puede ser nulo.");
-            throw new IllegalArgumentException("El ID del propietario no puede ser nulo.");
+            log.error("The owner ID cannot be null.");
+            throw new IllegalArgumentException("The owner ID cannot be null.");
         }
 
-        try {
-            // Validar si el propietario existe
-            boolean existUser = userFeignClient.existsUserById(restaurantModel.getOwnerId());
-            if (!existUser) {
-                log.error("El propietario con ID {} no existe.", restaurantModel.getOwnerId());
-                throw new UserNotExistException("El propietario no existe.");
-            }
-
-            // Guardar el restaurante
-            RestaurantModel savedRestaurant = restaurantPersistencePort.saveRestaurant(restaurantModel);
-            log.info("Restaurante guardado exitosamente: {}", savedRestaurant);
-
-        } catch (UserNotExistException e) {
-            log.error("Error de validación al guardar restaurante: {}", e.getMessage(), e);
-            throw e;
-        } catch (Exception e) {
-            log.error("Error inesperado al guardar restaurante: {}", e.getMessage(), e);
-            throw new RuntimeException("Error al guardar el restaurante. Por favor, inténtelo de nuevo.");
+        // Validar si el propietario existe
+        boolean existUser = userFeignClient.existsUserById(restaurantModel.getOwnerId());
+        if (!existUser) {
+            log.error("The owner with ID {} does not exist.", restaurantModel.getOwnerId());
+            throw new UserNotExistException("The owner not exist.");
         }
+
+        RestaurantModel savedRestaurant = restaurantPersistencePort.saveRestaurant(restaurantModel);
+        log.info("Restaurant saved successfully: {}", savedRestaurant);
     }
+
 
 
     @Override
@@ -77,7 +66,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
     }
 
     @Override
-    public void deleteRestaurantById(Long id) {
-
+    public void deleteRestaurantById(Long  idRestaurant) {
+        restaurantPersistencePort.getRestaurantById( idRestaurant);
     }
 }

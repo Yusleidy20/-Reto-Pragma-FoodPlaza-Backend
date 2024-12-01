@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
 
 @RequiredArgsConstructor
 public class DishAdapterImpl implements IDishPersistencePort {
@@ -25,11 +24,11 @@ public class DishAdapterImpl implements IDishPersistencePort {
     @Override
     @Transactional
     public DishModel saveDish(DishModel dishModel) {
-        log.info("Guardando plato en la base de datos: {}", dishModel);
+        log.info("Saving dish to database: {}", dishModel);
 
         // Validar que el restaurante existe
         RestaurantEntity restaurant = restaurantRepository.findById(dishModel.getIdRestaurant())
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurante no encontrado con ID: " + dishModel.getIdRestaurant()));
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + dishModel.getIdRestaurant()));
 
         // Mapear y asignar la entidad de restaurante
         DishEntity dishEntity = dishEntityMapper.toDishEntity(dishModel);
@@ -37,29 +36,43 @@ public class DishAdapterImpl implements IDishPersistencePort {
 
         // Guardar el plato
         DishEntity savedDishEntity = dishRepository.save(dishEntity);
-        log.info("Plato guardado con ID: {}", savedDishEntity.getIdDish());
+        log.info("Dish saved with ID: {}", savedDishEntity.getIdDish());
 
         return dishEntityMapper.toDishModel(savedDishEntity);
     }
 
 
     @Override
-    public DishModel findDishById(Long dishId) {
-        Optional<DishEntity> optionalDishEntity = dishRepository.findById(dishId);
-        DishEntity dishEntity = optionalDishEntity.orElse(null);
-        return dishEntityMapper.toDishModel(dishEntity);
+    public DishModel getDishById(Long dishId) {
+        DishEntity dishEntity = dishRepository.findById(dishId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishId));
+
+        // Mapear correctamente la entidad al modelo
+        DishModel dishModel = dishEntityMapper.toDishModel(dishEntity);
+        dishModel.setIdDish(dishEntity.getIdDish());
+        return dishModel;
     }
+
 
     @Override
     @Transactional
     public void updateDish(DishModel dishModel) {
-        DishEntity dishEntity = dishEntityMapper.toDishEntity(dishModel);
-        // Asignar el objeto RestaurantEntity completo
-        RestaurantEntity restaurant = restaurantRepository.findById(dishModel.getIdRestaurant())
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurante no encontrado con ID: " + dishModel.getIdRestaurant()));
-        dishEntity.setIdRestaurant(restaurant);
-        dishRepository.save(dishEntity);
+        log.info("Updating dish in database with ID: {}", dishModel.getIdDish());
+
+        // Buscar la entidad existente
+        DishEntity existingDishEntity = dishRepository.findById(dishModel.getIdDish())
+                .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishModel.getIdDish()));
+
+        // Actualizar solo los campos permitidos
+        existingDishEntity.setPrice(dishModel.getPrice());
+        existingDishEntity.setDescription(dishModel.getDescription());
+
+        // Guardar los cambios
+        dishRepository.save(existingDishEntity);
+        log.info("Dish successfully updated in database.");
     }
+
+
 
     @Override
     @Transactional

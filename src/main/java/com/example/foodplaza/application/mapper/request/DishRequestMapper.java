@@ -6,9 +6,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface DishRequestMapper { // Asigna 'true' por defecto
+public interface DishRequestMapper {
 
-    @Mapping(target = "idDish", ignore = true)      // Ignora 'idDish' ya que es generado por la base de datos
+    @Mapping(target = "idDish", ignore = true)
     @Mapping(target = "active", constant = "true")
     DishModel toDishModel(DishRequestDto dishRequestDto);
 }

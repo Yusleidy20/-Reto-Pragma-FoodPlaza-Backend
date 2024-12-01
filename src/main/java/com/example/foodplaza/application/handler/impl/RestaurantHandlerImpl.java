@@ -28,16 +28,13 @@ public class RestaurantHandlerImpl implements IRestaurantHandlerPort {
 
     @Override
     public void saveRestaurant(RestaurantRequestDto restaurantRequestDto) {
-        log.info("Mapper: Mapeando RestaurantRequestDto a RestaurantModel...");
         RestaurantModel restaurantModel = restaurantRequestMapper.toRestaurant(restaurantRequestDto);
-        log.info("Resultado del mapper: {}", restaurantModel);
         restaurantServicePort.saveRestaurant(restaurantModel);
     }
 
     @Override
     public RestaurantResponseDto getRestaurantById(Long idRestaurant) {
-        RestaurantResponseDto restaurantResponseDto = restaurantResponseMapper.toRestaurantResponse(restaurantServicePort.getRestaurantById(idRestaurant));
-        return restaurantResponseDto;
+        return restaurantResponseMapper.toRestaurantResponse(restaurantServicePort.getRestaurantById(idRestaurant));
     }
 
     @Override

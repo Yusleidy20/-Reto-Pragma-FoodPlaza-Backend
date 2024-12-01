@@ -1,4 +1,4 @@
-package com.example.foodplaza.infrastructure.configuration;
+package com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper;
 
 import com.example.foodplaza.application.dto.response.RoleResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;

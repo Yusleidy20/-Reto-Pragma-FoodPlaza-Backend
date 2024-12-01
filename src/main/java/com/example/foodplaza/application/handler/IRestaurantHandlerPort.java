@@ -2,8 +2,7 @@ package com.example.foodplaza.application.handler;
 
 import com.example.foodplaza.application.dto.request.RestaurantRequestDto;
 import com.example.foodplaza.application.dto.response.RestaurantResponseDto;
-import com.example.foodplaza.domain.model.RestaurantModel;
-import com.example.foodplaza.domain.model.UserModel;
+
 
 import java.util.List;
 

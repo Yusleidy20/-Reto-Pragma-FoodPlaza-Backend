@@ -20,8 +20,7 @@ public class DishEntity {
     private Long idDish;
 
     @Column(name="nameDish",nullable = false)
-    private String nameDish;  // Aquí el nombre de la propiedad es 'nameDish'
-
+    private String nameDish;
     @Column(name="price",nullable = false)
     private Integer price;
 
@@ -29,7 +28,7 @@ public class DishEntity {
     private String description;
 
     @Column(name="urlImage",nullable = false)
-    private String urlImage;  // Aquí el nombre es 'urlImage'
+    private String urlImage;
 
     @Column(name="category", nullable = false)
     private String category;
@@ -37,7 +36,7 @@ public class DishEntity {
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "idRestaurant", referencedColumnName = "idRestaurant", nullable = false)
-    private RestaurantEntity idRestaurant;  // Aquí es 'idRestaurant'
+    private RestaurantEntity idRestaurant;
 
     @Column(name="active",nullable = false)
     private Boolean active;
