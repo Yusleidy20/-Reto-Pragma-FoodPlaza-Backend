@@ -2,7 +2,7 @@ package com.example.foodplaza_users.infrastructure.configuration;
 
 import com.example.foodplaza_users.domain.api.IRoleServicePort;
 import com.example.foodplaza_users.domain.api.IUserServicePort;
-import com.example.foodplaza_users.domain.spi.persistence.IToken;
+
 import com.example.foodplaza_users.domain.spi.persistence.IUserRolePersistencePort;
 import com.example.foodplaza_users.domain.usecase.RoleUseCase;
 import com.example.foodplaza_users.domain.usecase.UserUseCase;
@@ -21,8 +21,7 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.firewall.StrictHttpFirewall;
+
 
 @RequiredArgsConstructor
 @Configuration

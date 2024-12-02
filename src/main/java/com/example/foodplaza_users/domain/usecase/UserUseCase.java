@@ -2,7 +2,7 @@ package com.example.foodplaza_users.domain.usecase;
 
 import com.example.foodplaza_users.domain.api.IUserServicePort;
 
-import com.example.foodplaza_users.domain.model.UserRole;
+
 import com.example.foodplaza_users.domain.model.UserModel;
 import com.example.foodplaza_users.domain.spi.persistence.IUserPersistencePort;
 import com.example.foodplaza_users.infrastructure.configuration.Constants;

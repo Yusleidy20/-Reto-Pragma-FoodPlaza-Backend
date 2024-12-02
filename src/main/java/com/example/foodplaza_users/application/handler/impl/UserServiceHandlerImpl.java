@@ -27,9 +27,7 @@ public class UserServiceHandlerImpl implements IUserServiceHandler {
 
     @Override
     public void saveUser(UserRequestDto userRequestDto) {
-        log.info("Mapper: Mapeando UserRequestDto a userModel...");
         UserModel userModel = userRequestMapper.toUserModel(userRequestDto);
-        log.info("Resultado del mapper: {}", userModel);
         userServicePort.saveUser(userModel);
     }
 
