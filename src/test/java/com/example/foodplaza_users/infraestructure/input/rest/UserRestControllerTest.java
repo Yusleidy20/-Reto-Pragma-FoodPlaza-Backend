@@ -51,7 +51,7 @@ class UserRestControllerTest {
 
         Mockito.when(userServiceHandler.isAdmin(adminId)).thenReturn(true);
 
-        ResponseEntity<String> response = userRestController.registerOwner(adminId, ownerDto);
+        ResponseEntity<String> response = userRestController.registerOwner(ownerDto);
 
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assertions.assertEquals("Owner registered successfully.", response.getBody());
@@ -79,7 +79,7 @@ class UserRestControllerTest {
 
         UserRoleNotFountException exception = Assertions.assertThrows(
                 UserRoleNotFountException.class,
-                () -> userRestController.registerOwner(adminId, ownerDto)
+                () -> userRestController.registerOwner(ownerDto)
         );
 
         Assertions.assertEquals("User must have Administrator role.", exception.getMessage());
@@ -127,7 +127,7 @@ class UserRestControllerTest {
 
         IllegalArgumentException exception = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> userRestController.registerOwner(adminId, ownerDto)
+                () -> userRestController.registerOwner(ownerDto)
         );
 
         Assertions.assertEquals("User must be an adult.", exception.getMessage());

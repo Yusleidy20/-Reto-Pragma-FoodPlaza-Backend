@@ -3,10 +3,14 @@ package com.example.foodplaza_users.domain.usecase;
 import com.example.foodplaza_users.domain.api.IUserServicePort;
 
 
+import com.example.foodplaza_users.domain.exception.UnauthorizedRoleException;
 import com.example.foodplaza_users.domain.model.UserModel;
+import com.example.foodplaza_users.domain.model.UserRole;
 import com.example.foodplaza_users.domain.spi.persistence.IUserPersistencePort;
 import com.example.foodplaza_users.infrastructure.configuration.Constants;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -26,8 +30,8 @@ public class UserUseCase implements IUserServicePort {
 
     }
 
+    @Override
     public void saveUser(UserModel userModel) {
-
         if (userModel.getBirthDate() == null) {
             throw new IllegalArgumentException("The date of birth cannot be null.");
         }
@@ -36,8 +40,18 @@ public class UserUseCase implements IUserServicePort {
             throw new IllegalArgumentException("The user must be of legal age.");
         }
 
-        assignRole(userModel);
+        // Validar y asignar rol si no es cliente
+        if (userModel.getUserRole() != null && !userModel.getUserRole().getIdUserRole().equals(Constants.CUSTOMER_ROLE_ID)) {
+            assignRole(userModel);
+        } else {
+            // Asignar rol de cliente automáticamente
+            userModel.setUserRole(new UserRole(Constants.CUSTOMER_ROLE_ID, Constants.ROLE_CUSTOMER, "Client Role"));
+        }
+
+        // Encriptar la contraseña
         userModel.setPasswordUser(passwordEncoder.encode(userModel.getPasswordUser()));
+
+        // Guardar el usuario
         userPersistencePort.saveUser(userModel);
     }
 
@@ -47,14 +61,23 @@ public class UserUseCase implements IUserServicePort {
         }
 
         Long idUserRole = userModel.getUserRole().getIdUserRole();
-        if (idUserRole.equals(Constants.ADMIN_ROLE_ID)) {
+
+        if (idUserRole.equals(Constants.EMPLOYEE_ROLE_ID)) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (!authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals(Constants.ROLE_OWNER))) {
+                throw new UnauthorizedRoleException("Only a restaurant owner can create employee accounts.");
+            }
+            userModel.getUserRole().setNameRole(Constants.ROLE_EMPLOYEE);
+        } else if (idUserRole.equals(Constants.ADMIN_ROLE_ID)) {
             userModel.getUserRole().setNameRole(Constants.ROLE_ADMIN);
         } else if (idUserRole.equals(Constants.OWNER_ROLE_ID)) {
             userModel.getUserRole().setNameRole(Constants.ROLE_OWNER);
         } else {
-            throw new IllegalArgumentException("The role must be ADMINISTRATOR or OWNER.");
+            throw new IllegalArgumentException("Invalid role specified.");
         }
     }
+
 
 
 

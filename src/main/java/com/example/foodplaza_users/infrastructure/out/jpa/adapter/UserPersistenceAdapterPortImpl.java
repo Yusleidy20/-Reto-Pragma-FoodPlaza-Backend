@@ -34,11 +34,6 @@ public class UserPersistenceAdapterPortImpl implements IUserPersistencePort {
     @Override
     public UserModel saveUser(UserModel userModel) {
         if (userModel.getUserRole() == null) {
-            RoleEntity roleEntity = userRoleRepositoryMySQL.findById(Constants.ADMIN_ROLE_ID)
-                    .orElseThrow(() -> new IllegalArgumentException("Administrator role not found"));
-            userModel.setUserRole(new UserRole(roleEntity.getIdUserRole(), roleEntity.getNameRole(), roleEntity.getDescriptionRole()));
-        }
-        if (userModel.getUserRole() == null) {
             throw new IllegalStateException("The user role is not assigned correctly.");
         }
 
@@ -46,6 +41,7 @@ public class UserPersistenceAdapterPortImpl implements IUserPersistencePort {
 
         return userEntityMapper.toUserModel(userEntity);
     }
+
 
 
 
