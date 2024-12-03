@@ -9,5 +9,6 @@ import org.mapstruct.Mapping;
 public interface DishRequestMapper {
 
     @Mapping(target = "idDish", ignore = true)
+    @Mapping(target = "active", constant = "true")
     DishModel toDishModel(DishRequestDto dishRequestDto);
 }

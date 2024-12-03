@@ -1,13 +1,19 @@
 package com.example.foodplaza.domain.usecase;
 
-import com.example.foodplaza.domain.api.IRestaurantServicePort;
 
+
+import com.example.foodplaza.application.dto.response.RestaurantDto;
+import com.example.foodplaza.domain.api.IRestaurantServicePort;
 import com.example.foodplaza.domain.exception.UserNotExistException;
 import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.feignclients.IUserFeignClientPort;
 import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -61,9 +67,30 @@ public class RestaurantUseCase implements IRestaurantServicePort {
     }
 
     @Override
-    public List<RestaurantModel> getRestaurantsWithPagination(Integer page, Integer size) {
-        return List.of();
+    public Page<RestaurantDto> getRestaurantsWithPaginationAndSorting(int page, int size, String sortBy) {
+        log.info("Retrieving restaurants with pagination. Page: {}, Size: {}, SortBy: {}", page, size, sortBy);
+
+        // Configurar la paginación y el ordenamiento
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+
+        // Obtener la página completa de restaurantes
+        Page<RestaurantDto> restaurantPage = restaurantPersistencePort.getRestaurantsWithPaginationAndSorting(pageable);
+
+        // Devolver la página mapeada con solo los campos requeridos (DTO)
+        return restaurantPage.map(restaurant -> {
+            RestaurantDto filteredRestaurant = new RestaurantDto();
+            filteredRestaurant.setNameRestaurant(restaurant.getNameRestaurant());
+            filteredRestaurant.setUrlLogo(restaurant.getUrlLogo());
+            return filteredRestaurant;
+        });
     }
+
+
+
+
+
+
+
 
     @Override
     public void deleteRestaurantById(Long  idRestaurant) {

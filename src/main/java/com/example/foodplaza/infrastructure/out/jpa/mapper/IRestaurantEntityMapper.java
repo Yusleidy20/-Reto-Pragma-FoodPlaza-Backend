@@ -23,4 +23,5 @@ public interface IRestaurantEntityMapper {
     @Mapping(source = "urlLogo", target = "urlLogo")
     @Mapping(source = "ownerId", target = "ownerId")
     RestaurantModel toRestaurantModel(RestaurantEntity restaurantEntity);
+
 }

@@ -6,9 +6,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.NumberFormat;
 
-
+@AllArgsConstructor
+@NoArgsConstructor
 public class RestaurantRequestDto {
     private Long idRestaurant;
     @NotBlank(message = "Name is required")
