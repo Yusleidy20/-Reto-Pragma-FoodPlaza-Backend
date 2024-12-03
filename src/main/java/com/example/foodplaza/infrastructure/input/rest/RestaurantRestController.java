@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,23 +25,11 @@ public class RestaurantRestController {
     private final IRoleFeignClient roleFeignClient;
 
     @PostMapping("/restaurant")
-    public ResponseEntity<String> createRestaurant(
-            @RequestParam Long adminId,
-            @Valid @RequestBody RestaurantRequestDto restaurantRequestDto) {
-        log.info("Starting restaurant registration. Admin ID: {}", adminId);
+    @PreAuthorize("hasAuthority('Administrator')")
+    public ResponseEntity<String> createRestaurant(@Valid @RequestBody RestaurantRequestDto restaurantRequestDto) {
         log.info("Data received in RestaurantRequestDto: {}", restaurantRequestDto);
 
-        // Validaciones iniciales
-        if (restaurantRequestDto.getAddress() == null || restaurantRequestDto.getAddress().isEmpty()) {
-            log.warn("Address not provided.");
-            throw new IllegalArgumentException("Address is required.");
-        }
-        if (adminId == null || adminId <= 0) {
-            log.warn("Invalid Admin ID.");
-            throw new IllegalArgumentException("The administrator ID is invalid.");
-        }
 
-        // Llamada al handler
         restaurantHandlerPort.saveRestaurant(restaurantRequestDto);
         log.info("Restaurant registered successfully.");
         return new ResponseEntity<>("Restaurant created successfully.", HttpStatus.CREATED);

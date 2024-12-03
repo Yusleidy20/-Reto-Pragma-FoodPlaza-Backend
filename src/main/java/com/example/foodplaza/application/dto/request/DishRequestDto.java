@@ -6,8 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
-@Getter
-@Setter
+
 @AllArgsConstructor
 @NoArgsConstructor
 public class DishRequestDto {
@@ -42,5 +41,53 @@ public class DishRequestDto {
                 ", category='" + category + '\'' +
                 ", idRestaurant=" + idRestaurant +
                 '}';
+    }
+
+    public String getNameDish() {
+        return nameDish;
+    }
+
+    public void setNameDish(String nameDish) {
+        this.nameDish = nameDish;
+    }
+
+    public Integer getPrice() {
+        return price;
+    }
+
+    public void setPrice(Integer price) {
+        this.price = price;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getUrlImage() {
+        return urlImage;
+    }
+
+    public void setUrlImage(String urlImage) {
+        this.urlImage = urlImage;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Long getIdRestaurant() {
+        return idRestaurant;
+    }
+
+    public void setIdRestaurant(Long idRestaurant) {
+        this.idRestaurant = idRestaurant;
     }
 }

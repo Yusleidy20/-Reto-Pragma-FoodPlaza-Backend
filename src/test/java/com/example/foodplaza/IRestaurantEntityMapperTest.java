@@ -11,30 +11,56 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-public class IRestaurantEntityMapperTest {
+ class IRestaurantEntityMapperTest {
 
     @Autowired
     private IRestaurantEntityMapper mapper;
 
     @Test
-    public void testMapperModelToEntity() {
+    void testToRestaurantEntity() {
         // Crear un modelo de prueba
-        RestaurantModel model = new RestaurantModel();
-        model.setIdRestaurant(1L);
-        model.setNameRestaurant("Test Restaurant");
-        model.setNit("123456789");
-        model.setAddress("Cúcuta");
-        model.setPhoneNumber("+1234567890");
-        model.setUrlLogo("test-logo.png");
-        model.setOwnerId(5L);
+        RestaurantModel model = RestaurantModel.builder()
+                .idRestaurant(1L)
+                .nameRestaurant("Test Restaurant")
+                .nit("123456789")
+                .address("123 Test St")
+                .phoneNumber("+123456789")
+                .urlLogo("http://example.com/logo.png")
+                .ownerId(42L)
+                .build();
 
-        // Convertir el modelo a entidad
+        // Mapear a entidad
         RestaurantEntity entity = mapper.toRestaurantEntity(model);
 
-        // Validar los valores mapeados
+        // Validar mapeo
         assertNotNull(entity);
+        assertEquals(model.getIdRestaurant(), entity.getIdRestaurant());
         assertEquals(model.getNameRestaurant(), entity.getNameRestaurant());
+        assertEquals(model.getNit(), entity.getNit());
         assertEquals(model.getAddress(), entity.getAddress());
+        assertEquals(model.getPhoneNumber(), entity.getPhoneNumber());
+        assertEquals(model.getUrlLogo(), entity.getUrlLogo());
         assertEquals(model.getOwnerId(), entity.getOwnerId());
+    }
+
+    @Test
+    void testToRestaurantModel() {
+        // Crear una entidad de prueba
+        RestaurantEntity entity = new RestaurantEntity(
+                1L, "Test Restaurant", "123456789", "123 Test St",
+                "+123456789", "http://example.com/logo.png", 42L);
+
+        // Mapear a modelo
+        RestaurantModel model = mapper.toRestaurantModel(entity);
+
+        // Validar mapeo
+        assertNotNull(model);
+        assertEquals(entity.getIdRestaurant(), model.getIdRestaurant());
+        assertEquals(entity.getNameRestaurant(), model.getNameRestaurant());
+        assertEquals(entity.getNit(), model.getNit());
+        assertEquals(entity.getAddress(), model.getAddress());
+        assertEquals(entity.getPhoneNumber(), model.getPhoneNumber());
+        assertEquals(entity.getUrlLogo(), model.getUrlLogo());
+        assertEquals(entity.getOwnerId(), model.getOwnerId());
     }
 }

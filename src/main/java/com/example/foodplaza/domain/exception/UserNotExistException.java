@@ -1,7 +1,7 @@
 package com.example.foodplaza.domain.exception;
 
 public class UserNotExistException extends  RuntimeException{
-    public UserNotExistException(String s) {
-        super();
+    public UserNotExistException(String message) {
+        super(message); // Asegúrate de que el mensaje se pasa aquí
     }
 }

@@ -30,4 +30,7 @@ public interface IDishEntityMapper {
         return restaurantEntity.getIdRestaurant();
     }
 
+
+
+
 }

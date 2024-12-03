@@ -15,8 +15,8 @@ import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserDto
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IDishEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IRestaurantEntityMapper;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepositoryMySql;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepositoryMySql;
+import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
+import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +24,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class ConfigurationBean {
-    private final IRestaurantRepositoryMySql restaurantRepository;
+    private final IRestaurantRepository restaurantRepository;
     private final IRestaurantEntityMapper restaurantEntityMapper;
-    private final IDishRepositoryMySql dishRepository;
+    private final IDishRepository dishRepository;
     private final IDishEntityMapper dishEntityMapper;
     private final IUserFeignClient userFeignClient;
     private final IUserDtoMapper userDtoMapper;
@@ -52,6 +52,6 @@ public class ConfigurationBean {
 
     @Bean
     public IDishServicePort dishServicePort() {
-        return new DishUseCase(dishPersistencePort()); // Corregido aquí
+        return new DishUseCase(dishPersistencePort(),restaurantRepository);
     }
 }

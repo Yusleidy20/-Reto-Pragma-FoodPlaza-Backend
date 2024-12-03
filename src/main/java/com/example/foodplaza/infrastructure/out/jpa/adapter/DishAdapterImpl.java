@@ -6,8 +6,8 @@ import com.example.foodplaza.domain.spi.persistence.IDishPersistencePort;
 import com.example.foodplaza.infrastructure.out.jpa.entity.DishEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IDishEntityMapper;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepositoryMySql;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepositoryMySql;
+import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
+import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 @RequiredArgsConstructor
 public class DishAdapterImpl implements IDishPersistencePort {
 
-    private final IDishRepositoryMySql dishRepository;
+    private final IDishRepository dishRepository;
     private final IDishEntityMapper dishEntityMapper;
-    private final IRestaurantRepositoryMySql restaurantRepository;
+    private final IRestaurantRepository restaurantRepository;
     private static final Logger log = LoggerFactory.getLogger(DishAdapterImpl.class);
     @Override
     @Transactional
@@ -63,14 +63,16 @@ public class DishAdapterImpl implements IDishPersistencePort {
         DishEntity existingDishEntity = dishRepository.findById(dishModel.getIdDish())
                 .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishModel.getIdDish()));
 
-        // Actualizar solo los campos permitidos
+        // Actualizar los campos permitidos, incluyendo 'active'
         existingDishEntity.setPrice(dishModel.getPrice());
         existingDishEntity.setDescription(dishModel.getDescription());
+        existingDishEntity.setActive(dishModel.getActive());  // Aquí actualizas el campo 'active'
 
         // Guardar los cambios
         dishRepository.save(existingDishEntity);
         log.info("Dish successfully updated in database.");
     }
+
 
 
 

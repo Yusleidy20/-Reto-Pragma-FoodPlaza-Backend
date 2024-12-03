@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 
 public interface IDishHandlerPort {
 
-    void createDish(DishRequestDto dishRequestDto);
+    void createDish(DishRequestDto dishRequestDto) throws IllegalAccessException;
     void updateDish(Long idDish, @Valid DishUpdateRequestDto dishRequestDto);
     DishResponseDto getDishById(Long idDish);
 }

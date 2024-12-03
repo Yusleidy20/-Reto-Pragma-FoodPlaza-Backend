@@ -1,7 +1,9 @@
-package com.example.foodplaza_users.infrastructure.configuration.segurity;
+package com.example.foodplaza.infrastructure.configuration.segurity;
 
 
-import com.example.foodplaza_users.domain.model.UserModel;
+
+
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.UserDto;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,21 +14,31 @@ import java.util.List;
 
 @AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {
-    private final UserModel userModel;
+    private final UserDto userDto;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(userModel.getUserRole().getNameRole()));
+        String roleName = (userDto.getUserRole() != null && userDto.getUserRole().getNameRole() != null)
+                ? userDto.getUserRole().getNameRole()
+                : "Default";
+
+        // Aquí puedes lanzar una excepción si necesitas garantizar que no sea 'Default'
+        if ("Default".equals(roleName)) {
+            throw new IllegalStateException("User role is missing. Cannot proceed with authentication.");
+        }
+
+        return List.of(new SimpleGrantedAuthority(roleName));
     }
+
 
     @Override
     public String getPassword() {
-        return userModel.getPasswordUser();
+        return userDto.getPasswordUser();
     }
 
     @Override
     public String getUsername() {
-        return userModel.getEmail();
+        return userDto.getEmail();
     }
 
 }

@@ -8,42 +8,48 @@ import com.example.foodplaza.application.mapper.request.DishRequestMapper;
 import com.example.foodplaza.application.mapper.response.DishResponseMapper;
 import com.example.foodplaza.domain.api.IDishServicePort;
 import com.example.foodplaza.domain.model.DishModel;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepositoryMySql;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class DishHandlerImpl implements IDishHandlerPort {
     private final IDishServicePort dishServicePort;
-    private final IRestaurantRepositoryMySql repositoryMySql;
     private final DishRequestMapper dishRequestMapper;
     private final DishResponseMapper dishResponseMapper;
-    private static final Logger log = LoggerFactory.getLogger(DishHandlerImpl.class);
-
-
 
     @Override
-    public void createDish(DishRequestDto dishRequestDto) {
+    public void createDish(DishRequestDto dishRequestDto) throws IllegalAccessException {
         DishModel dishModel = dishRequestMapper.toDishModel(dishRequestDto);
         dishServicePort.saveDish(dishModel);
     }
+
     @Override
     public void updateDish(Long idDish, DishUpdateRequestDto dishUpdateDto) {
-
-        // Mapea el DTO a un modelo
         DishModel dishModel = new DishModel();
         dishModel.setIdDish(idDish);
-        dishModel.setPrice(dishUpdateDto.getPrice());
-        dishModel.setDescription(dishUpdateDto.getDescription());
 
-        // Llamar al caso de uso para actualizar
+        // Si price no es nulo, actualiza el valor
+        if (dishUpdateDto.getPrice() != null) {
+            dishModel.setPrice(dishUpdateDto.getPrice());
+        }
+        // Si description no es nulo, actualiza el valor
+        if (dishUpdateDto.getDescription() != null) {
+            dishModel.setDescription(dishUpdateDto.getDescription());
+        }
+        // Si active no es nulo, actualiza el valor
+        if (dishUpdateDto.getActive() != null) {
+            dishModel.setActive(dishUpdateDto.getActive());
+        }
+
+        // Ahora se pasa el objeto dishModel al servicio
         dishServicePort.updateDish(dishModel);
     }
+
+
+
+
 
     @Override
     public DishResponseDto getDishById(Long idDish) {

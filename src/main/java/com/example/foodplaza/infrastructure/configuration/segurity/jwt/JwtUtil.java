@@ -1,5 +1,4 @@
-package com.example.foodplaza_users.infrastructure.configuration.segurity.jwt;
-
+package com.example.foodplaza.infrastructure.configuration.segurity.jwt;
 
 
 import io.jsonwebtoken.JwtException;
@@ -7,20 +6,26 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JwtUtil {
 
-    private static final String ACCESS_TOKEN_SECRET = System.getenv("ACCESS_TOKEN_SECRET");
+    private static final String ACCESS_TOKEN_SECRET =
+            System.getenv("ACCESS_TOKEN_SECRET") != null
+                    ? System.getenv("ACCESS_TOKEN_SECRET")
+                    : "S6Do4LIXCN6KGKmbAS8zwVUbAXCIYvqw";
     private static final Long ACCESS_TOKEN_VALIDITY_SECONDS = 86_400L;
 
     private JwtUtil() {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static String generateToken(String username, String role) {
+    public static String generateToken(String username, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("userId", userId); // Agregar el userId al token
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -44,6 +49,15 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false; // Token inválido
         }
+    }
+    public static Long getUserIdFromToken(String token) {
+        Object userId = Jwts.parserBuilder()
+                .setSigningKey(ACCESS_TOKEN_SECRET.getBytes())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId");
+        return userId != null ? Long.valueOf(userId.toString()) : null;
     }
 
     // Extraer el usuario del token

@@ -36,7 +36,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         boolean existUser = userFeignClient.existsUserById(restaurantModel.getOwnerId());
         if (!existUser) {
             log.error("The owner with ID {} does not exist.", restaurantModel.getOwnerId());
-            throw new UserNotExistException("The owner not exist.");
+            throw new UserNotExistException("The owner does not exist.");
         }
 
         RestaurantModel savedRestaurant = restaurantPersistencePort.saveRestaurant(restaurantModel);

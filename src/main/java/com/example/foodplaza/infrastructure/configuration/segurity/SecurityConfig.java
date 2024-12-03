@@ -1,11 +1,11 @@
-package com.example.foodplaza_users.infrastructure.configuration.segurity;
+package com.example.foodplaza.infrastructure.configuration.segurity;
 
 
-import com.example.foodplaza_users.infrastructure.configuration.segurity.jwt.JwtRequestFilter;
+
+import com.example.foodplaza.infrastructure.configuration.segurity.jwt.JwtRequestFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,11 +19,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfig {
-    private final UserDetailsService userDetailsService;
 
     @Bean
     public JwtRequestFilter jwtRequestFilter() {
-        return new JwtRequestFilter(userDetailsService);
+        return new JwtRequestFilter();
     }
 
     @Bean
@@ -32,8 +31,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/user-micro/user/login").permitAll()
-                        .requestMatchers("/user-micro/user/admin").hasAuthority("Administrator")
-                        .requestMatchers("/user-micro/user/owner").hasAuthority("Administrator")
+                        .requestMatchers("/user-micro/foodplaza/restaurant").hasAuthority("Administrator")
+                        .requestMatchers("/user-micro/foodplaza/dish").hasAuthority("Owner")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class)

@@ -4,7 +4,7 @@ import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IRestaurantEntityMapper;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepositoryMySql;
+import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
-    private final IRestaurantRepositoryMySql restaurantRepositoryMySql;
+    private final IRestaurantRepository restaurantRepositoryMySql;
     private  final IRestaurantEntityMapper restaurantEntityMapper;
     private static final Logger log = LoggerFactory.getLogger(RestaurantAdapterImpl.class);
 
