@@ -15,10 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@Validated
 @RestController
 @RequestMapping(path = "/user-micro/foodplaza")
 @RequiredArgsConstructor
@@ -33,12 +34,13 @@ public class RestaurantRestController {
     @PreAuthorize("hasAuthority('Administrator')")
     public ResponseEntity<String> createRestaurant(@Valid @RequestBody RestaurantRequestDto restaurantRequestDto) {
         log.info("Data received in RestaurantRequestDto: {}", restaurantRequestDto);
-
-
         restaurantHandlerPort.saveRestaurant(restaurantRequestDto);
         log.info("Restaurant registered successfully.");
         return new ResponseEntity<>("Restaurant created successfully.", HttpStatus.CREATED);
     }
+
+
+
     // Endpoint para listar los restaurantes con paginación (solo para clientes)
     @GetMapping("/restaurants")
     @PreAuthorize("hasAuthority('Customer')") // Solo usuarios con el rol 'Customer' pueden acceder

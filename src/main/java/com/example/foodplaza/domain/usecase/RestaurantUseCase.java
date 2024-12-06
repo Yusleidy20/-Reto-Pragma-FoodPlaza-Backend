@@ -4,6 +4,7 @@ package com.example.foodplaza.domain.usecase;
 
 import com.example.foodplaza.application.dto.response.RestaurantDto;
 import com.example.foodplaza.domain.api.IRestaurantServicePort;
+import com.example.foodplaza.domain.exception.RestaurantValidationException;
 import com.example.foodplaza.domain.exception.UserNotExistException;
 import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.feignclients.IUserFeignClientPort;
@@ -45,6 +46,10 @@ public class RestaurantUseCase implements IRestaurantServicePort {
             throw new UserNotExistException("The owner does not exist.");
         }
 
+        if (restaurantPersistencePort.existsByNit(restaurantModel.getNit())) {
+            throw new RestaurantValidationException("The NIT is already registered.");
+        }
+
         RestaurantModel savedRestaurant = restaurantPersistencePort.saveRestaurant(restaurantModel);
         log.info("Restaurant saved successfully: {}", savedRestaurant);
     }
@@ -70,13 +75,13 @@ public class RestaurantUseCase implements IRestaurantServicePort {
     public Page<RestaurantDto> getRestaurantsWithPaginationAndSorting(int page, int size, String sortBy) {
         log.info("Retrieving restaurants with pagination. Page: {}, Size: {}, SortBy: {}", page, size, sortBy);
 
-        // Configurar la paginación y el ordenamiento
+        //configuaracion de page y size
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
 
-        // Obtener la página completa de restaurantes
+        // pagina completa
         Page<RestaurantDto> restaurantPage = restaurantPersistencePort.getRestaurantsWithPaginationAndSorting(pageable);
 
-        // Devolver la página mapeada con solo los campos requeridos (DTO)
+        // campos requeridos devueltos
         return restaurantPage.map(restaurant -> {
             RestaurantDto filteredRestaurant = new RestaurantDto();
             filteredRestaurant.setNameRestaurant(restaurant.getNameRestaurant());

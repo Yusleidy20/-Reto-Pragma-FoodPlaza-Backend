@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 @RequiredArgsConstructor
@@ -21,6 +23,7 @@ public class DishAdapterImpl implements IDishPersistencePort {
     private final IDishEntityMapper dishEntityMapper;
     private final IRestaurantRepository restaurantRepository;
     private static final Logger log = LoggerFactory.getLogger(DishAdapterImpl.class);
+
     @Override
     @Transactional
     public DishModel saveDish(DishModel dishModel) {
@@ -30,51 +33,40 @@ public class DishAdapterImpl implements IDishPersistencePort {
         RestaurantEntity restaurant = restaurantRepository.findById(dishModel.getIdRestaurant())
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + dishModel.getIdRestaurant()));
 
-        // Mapear y asignar la entidad de restaurante
         DishEntity dishEntity = dishEntityMapper.toDishEntity(dishModel);
         dishEntity.setIdRestaurant(restaurant);
 
-        // Guardar el plato
         DishEntity savedDishEntity = dishRepository.save(dishEntity);
         log.info("Dish saved with ID: {}", savedDishEntity.getIdDish());
 
         return dishEntityMapper.toDishModel(savedDishEntity);
     }
 
-
     @Override
     public DishModel getDishById(Long dishId) {
         DishEntity dishEntity = dishRepository.findById(dishId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishId));
-
-        // Mapear correctamente la entidad al modelo
         DishModel dishModel = dishEntityMapper.toDishModel(dishEntity);
         dishModel.setIdDish(dishEntity.getIdDish());
         return dishModel;
     }
-
 
     @Override
     @Transactional
     public void updateDish(DishModel dishModel) {
         log.info("Updating dish in database with ID: {}", dishModel.getIdDish());
 
-        // Buscar la entidad existente
         DishEntity existingDishEntity = dishRepository.findById(dishModel.getIdDish())
                 .orElseThrow(() -> new ResourceNotFoundException("Dish not found with ID: " + dishModel.getIdDish()));
 
-        // Actualizar los campos permitidos, incluyendo 'active'
+        // Actualizar
         existingDishEntity.setPrice(dishModel.getPrice());
         existingDishEntity.setDescription(dishModel.getDescription());
-        existingDishEntity.setActive(dishModel.getActive());  // Aquí actualizas el campo 'active'
+        existingDishEntity.setActive(dishModel.getActive());
 
-        // Guardar los cambios
         dishRepository.save(existingDishEntity);
         log.info("Dish successfully updated in database.");
     }
-
-
-
 
     @Override
     @Transactional
@@ -82,5 +74,26 @@ public class DishAdapterImpl implements IDishPersistencePort {
         dishRepository.deleteById(dishId);
     }
 
-}
+    @Override
+    public Page<DishModel> listDishes(Pageable pageable, Long idCategory, Long idRestaurant) {
+        if (idCategory != null) {
+            return dishRepository.findByIdRestaurantAndIdCategory(idRestaurant, idCategory, pageable)
+                    .map(dishEntityMapper::toDishModel);
+        } else {
+            return dishRepository.findByIdRestaurant(idRestaurant, pageable)
+                    .map(dishEntityMapper::toDishModel);
+        }
+    }
 
+    @Override
+    public Page<DishModel> findByiIdRestaurantAndIdCategory(Long idRestaurant, Long idCategory, Pageable pageable) {
+        Page<DishEntity> dishEntities = dishRepository.findByIdRestaurantAndIdCategory(idRestaurant, idCategory, pageable);
+        return dishEntities.map(dishEntityMapper::toDishModel);
+    }
+
+    @Override
+    public Page<DishModel> findByIdRestaurant(Long idRestaurant, Pageable pageable) {
+        Page<DishEntity> dishEntities = dishRepository.findByIdRestaurant(idRestaurant, pageable);
+        return dishEntities.map(dishEntityMapper::toDishModel);
+    }
+}

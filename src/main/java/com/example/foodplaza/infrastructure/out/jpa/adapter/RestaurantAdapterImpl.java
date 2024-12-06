@@ -57,7 +57,18 @@ public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
         return restaurantEntityMapper.toRestaurantModel(restaurantEntity);
     }
 
+    @Override
+    public boolean existsByNit(String nit) {
+        return restaurantRepositoryMySql.existsByNit(nit);
+    }
 
+    @Override
+    public Optional<RestaurantModel> findById(Long idRestaurant) {
+        Optional<RestaurantEntity> optionalRestaurantEntity = restaurantRepositoryMySql.findById(idRestaurant);
+
+        // Si la entidad existe, la mapeamos a RestaurantModel, sino devolvemos un Optional vacío
+        return optionalRestaurantEntity.map(restaurantEntityMapper::toRestaurantModel);
+    }
 
 
 }

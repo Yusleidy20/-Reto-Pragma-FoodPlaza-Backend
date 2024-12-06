@@ -6,10 +6,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;  // Cambio aquí
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IRestaurantPersistencePort {
     RestaurantModel saveRestaurant(RestaurantModel restaurant);
     Page<RestaurantDto> getRestaurantsWithPaginationAndSorting(Pageable pageable);  // Cambio aquí
     RestaurantModel getRestaurantById(Long idRestaurant);
     RestaurantModel getRestaurantByIdOwner(Long ownerId);
+    boolean existsByNit(String nit);
+    Optional<RestaurantModel> findById(Long idRestaurant);
+
 }

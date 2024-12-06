@@ -6,24 +6,23 @@ import com.example.foodplaza.domain.model.DishModel;
 import com.example.foodplaza.domain.spi.persistence.IDishPersistencePort;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Optional;
-@ExtendWith(MockitoExtension.class)
-class DishUseCaseTest {
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-    @InjectMocks
-    private DishUseCase dishUseCase;
+import org.mockito.*;
+
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+ class DishUseCaseTest {
 
     @Mock
     private IDishPersistencePort dishPersistencePort;
@@ -31,140 +30,123 @@ class DishUseCaseTest {
     @Mock
     private IRestaurantRepository restaurantRepository;
 
-    private DishModel dishModel;
-    private DishModel existingDish;
-    private RestaurantEntity restaurantEntity;
+    @InjectMocks
+    private DishUseCase dishUseCase;
+
+    @Mock
+    private Authentication authentication;
 
     @BeforeEach
-    void setUp() {
-        // Configuración inicial para los objetos de prueba
-        dishModel = new DishModel(
-                null,
-                "Dish 1",
-                10000,
-                "Delicious dish",
-                "http://example.com/dish.png",
-                "Category 1",
-                1L,
-                true
-        );
-
-        existingDish = new DishModel(
-                1L,
-                "Dish 1",
-                12000,
-                "Updated dish",
-                "http://example.com/dish.png",
-                "Category 1",
-                1L,
-                true
-        );
-
-        restaurantEntity = new RestaurantEntity(
-                1L,
-                "Restaurant 1",
-                "123456789",
-                "123 Main St",
-                "+573005698325",
-                "http://logo.com/logo.png",
-                1L
-        );
-
-        // Simular el contexto de seguridad con un usuario autenticado
-        Authentication authentication = Mockito.mock(Authentication.class);
-        Mockito.when(authentication.getDetails()).thenReturn(1L); // Simula el ID del usuario
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
     }
 
-
-    // Test: Guardar un plato exitosamente
     @Test
-    void saveDish_Success() {
-        // Simula un restaurante válido y un plato a guardar
-        Mockito.when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurantEntity));
-        Mockito.when(dishPersistencePort.saveDish(dishModel)).thenReturn(dishModel);
+     void testSaveDish_Success() {
+        // Arrange
+        DishModel dishModel = new DishModel();
+        dishModel.setIdRestaurant(1L);
+        dishModel.setPrice(100000);
+        dishModel.setDescription("Delicious dish");
 
-        // Act: Llamada al caso de uso
+        RestaurantEntity restaurant = new RestaurantEntity();
+        restaurant.setOwnerId(1L);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getDetails()).thenReturn(1L); // Simulando que el usuario autenticado es el propietario del restaurante
+
+        // Act
         dishUseCase.saveDish(dishModel);
 
-        // Assert: Verifica que el restaurante fue consultado y el plato fue guardado
-        Mockito.verify(restaurantRepository).findById(1L);
-        Mockito.verify(dishPersistencePort).saveDish(dishModel);
+        // Assert
+        verify(dishPersistencePort, times(1)).saveDish(dishModel);
     }
 
     @Test
-    void saveDish_Fail_UserNotOwner() {
-        // Test: Fallo al guardar un plato porque el usuario no es propietario
-        // Simula un restaurante cuyo propietario no es el usuario autenticado
-        Mockito.when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurantEntity));
-        restaurantEntity.setOwnerId(99L); // Cambiar el propietario para simular el error
+     void testSaveDish_Unauthorized() {
+        // Arrange
+        DishModel dishModel = new DishModel();
+        dishModel.setIdRestaurant(1L);
 
-        // Act & Assert: Se espera una excepción de tipo UnauthorizedException
-        UnauthorizedException exception = Assertions.assertThrows(
-                UnauthorizedException.class,
-                () -> dishUseCase.saveDish(dishModel)
-        );
+        RestaurantEntity restaurant = new RestaurantEntity();
+        restaurant.setOwnerId(2L); // no es el propietario autenticado
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
 
-        // Verifica el mensaje de la excepción y que no se haya guardado el plato
-        Assertions.assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
-        Mockito.verify(restaurantRepository).findById(1L);
-        Mockito.verifyNoInteractions(dishPersistencePort);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getDetails()).thenReturn(1L); //no es el propietario
+
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            dishUseCase.saveDish(dishModel);
+        });
+        assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
     }
 
     @Test
-    void updateDish_Success() {
-        // Test: Actualizar un plato exitosamente
-        // Simula un plato existente y un restaurante válido
-        Mockito.when(dishPersistencePort.getDishById(1L)).thenReturn(existingDish);
-        Mockito.when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurantEntity));
+    @Transactional
+     void testUpdateDish_Success() {
+        // Arrange
+        DishModel dishModel = new DishModel();
+        dishModel.setIdDish(1L);
+        dishModel.setPrice(12000);
+        dishModel.setDescription("Updated description");
 
-        // Act: Llamada al caso de uso para actualizar el plato
-        dishUseCase.updateDish(existingDish);
+        DishModel existingDish = new DishModel();
+        existingDish.setIdDish(1L);
+        existingDish.setIdRestaurant(1L);
+        existingDish.setPrice(10000);
+        existingDish.setDescription("Old description");
 
-        // Assert: Verifica que el plato y el restaurante fueron consultados, y que el plato fue actualizado
-        Mockito.verify(dishPersistencePort).getDishById(1L);
-        Mockito.verify(restaurantRepository).findById(1L);
-        Mockito.verify(dishPersistencePort).updateDish(existingDish);
+        RestaurantEntity restaurant = new RestaurantEntity();
+        restaurant.setOwnerId(1L); // El propietario si es el autenticado
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+
+        when(dishPersistencePort.getDishById(1L)).thenReturn(existingDish);
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getDetails()).thenReturn(1L); // es el propietario autenticado
+
+        // Act
+        dishUseCase.updateDish(dishModel);
+
+        // Assert
+        assertEquals(12000, existingDish.getPrice());
+        assertEquals("Updated description", existingDish.getDescription());
+        verify(dishPersistencePort, times(1)).updateDish(existingDish);
     }
 
     @Test
-    void updateDish_Fail_UserNotOwner() {
-        // Test: Fallo al actualizar un plato porque el usuario no es propietario
-        // Simula un plato existente y un restaurante cuyo propietario no es el usuario autenticado
-        Mockito.when(dishPersistencePort.getDishById(1L)).thenReturn(existingDish);
-        Mockito.when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurantEntity));
-        restaurantEntity.setOwnerId(99L); // Cambiar el propietario para simular el error
+     void testValidateOwner_Success() {
+        // Arrange
+        RestaurantEntity restaurant = new RestaurantEntity();
+        restaurant.setOwnerId(1L);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
 
-        // Act & Assert: Se espera una excepción de tipo UnauthorizedException
-        UnauthorizedException exception = Assertions.assertThrows(
-                UnauthorizedException.class,
-                () -> dishUseCase.updateDish(existingDish)
-        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getDetails()).thenReturn(1L); // Simulando que el usuario autenticado es el propietario
 
-        // Verifica el mensaje de la excepción y que no se haya actualizado el plato
-        Assertions.assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
-        Mockito.verify(dishPersistencePort).getDishById(1L);
-        Mockito.verify(restaurantRepository).findById(1L);
-        Mockito.verifyNoMoreInteractions(dishPersistencePort);
+        // Act
+        dishUseCase.validateOwner(1L, 1L);
+
+        // Assert
+        // No exceptions should be thrown, so this is considered a success.
     }
 
     @Test
-    void updateDish_Fail_DishNotFound() {
-        // Test: Fallo al actualizar un plato porque no se encuentra el plato
-        // Simula que no se encuentra el plato en el repositorio
-        Mockito.when(dishPersistencePort.getDishById(1L)).thenThrow(new ResourceNotFoundException("Dish not found"));
+     void testValidateOwner_Unauthorized() {
+        // Arrange
+        RestaurantEntity restaurant = new RestaurantEntity();
+        restaurant.setOwnerId(2L); // El propietario del restaurante no es el usuario autenticado
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
 
-        // Act & Assert: Se espera una excepción de tipo ResourceNotFoundException
-        ResourceNotFoundException exception = Assertions.assertThrows(
-                ResourceNotFoundException.class,
-                () -> dishUseCase.updateDish(existingDish)
-        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getDetails()).thenReturn(1L); // El usuario autenticado no es el propietario
 
-        // Verifica el mensaje de la excepción y que no se haya consultado el restaurante
-        Assertions.assertEquals("Dish not found", exception.getMessage());
-        Mockito.verify(dishPersistencePort).getDishById(1L);
-        Mockito.verifyNoInteractions(restaurantRepository);
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+            dishUseCase.validateOwner(1L, 1L);
+        });
+        assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
     }
 }

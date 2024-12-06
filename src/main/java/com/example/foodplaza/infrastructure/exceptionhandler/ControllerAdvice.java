@@ -6,6 +6,7 @@ import com.example.foodplaza.domain.exception.ResourceNotFoundException;
 import com.example.foodplaza.domain.exception.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,7 +17,9 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ControllerAdvice {
@@ -31,9 +34,10 @@ public class ControllerAdvice {
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
-        log.error("Validation errors: {}", errors);
         return ResponseEntity.badRequest().body(errors);
     }
+
+
 
     // Manejo de rutas no encontradas
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -89,6 +93,11 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Collections.singletonMap(MESSAGE_KEY, "An unexpected error occurred: " + ex.getMessage()));
     }
-
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicateKeyException(DataIntegrityViolationException e) {
+        log.error("Database error: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Collections.singletonMap(MESSAGE_KEY, "Duplicate entry for key: " + e.getMessage()));
+    }
 
 }

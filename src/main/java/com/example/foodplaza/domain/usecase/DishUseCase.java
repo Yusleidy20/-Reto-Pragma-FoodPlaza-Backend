@@ -5,30 +5,34 @@ import com.example.foodplaza.domain.api.IDishServicePort;
 import com.example.foodplaza.domain.exception.ResourceNotFoundException;
 import com.example.foodplaza.domain.exception.UnauthorizedException;
 import com.example.foodplaza.domain.model.DishModel;
+import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.persistence.IDishPersistencePort;
+import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
+import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 
 @RequiredArgsConstructor
 public class DishUseCase implements IDishServicePort {
     private final IDishPersistencePort dishPersistencePort;
-    private final IRestaurantRepository restaurantRepository;
+    private final IRestaurantPersistencePort restaurantPersistencePort; // Puerto para Restaurant
     private static final Logger log = LoggerFactory.getLogger(DishUseCase.class);
 
     // Método para verificar que el usuario es el propietario del restaurante
-    private void validateOwner(Long restaurantId, Long userId) {
-        RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + restaurantId));
+    void validateOwner(Long idRestaurant, Long userId) {
+        RestaurantModel restaurant = restaurantPersistencePort.findById(idRestaurant)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with ID: " + idRestaurant));
 
         if (!restaurant.getOwnerId().equals(userId)) {
-            log.error("Unauthorized access: User with ID {} is not the owner of restaurant ID {}", userId, restaurantId);
+            log.error("Unauthorized access: User with ID {} is not the owner of restaurant ID {}", userId, idRestaurant);
             throw new UnauthorizedException("You are not authorized to perform this action on this restaurant.");
         }
     }
@@ -47,49 +51,51 @@ public class DishUseCase implements IDishServicePort {
 
         // Guardar el plato
         dishModel.setActive(true);
-        dishPersistencePort.saveDish(dishModel);
+        dishPersistencePort.saveDish(dishModel);  // Esto interactúa con el Adapter
         log.info("Dish created successfully: {}", dishModel);
     }
 
-    // Método para actualizar el plato
     @Override
     @Transactional
     public void updateDish(DishModel dishModel) {
-        log.info("Updating dish with ID: {}", dishModel.getIdDish());
-
-        // Obtener el userId desde la seguridad (Spring Security)
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long currentUserId = (Long) authentication.getDetails();
-
-        // Obtener el plato actual
+        Long currentUserId = getCurrentUserId();
         DishModel existingDish = dishPersistencePort.getDishById(dishModel.getIdDish());
-
-        // Validar que el usuario sea el propietario del restaurante
         validateOwner(existingDish.getIdRestaurant(), currentUserId);
-
-        // Actualizar los campos del plato solo si no son nulos
-        if (dishModel.getPrice() != null) {
-            existingDish.setPrice(dishModel.getPrice());
-        }
-
-        if (dishModel.getDescription() != null) {
-            existingDish.setDescription(dishModel.getDescription());
-        }
-
-        if (dishModel.getActive() != null) {
-            existingDish.setActive(dishModel.getActive());  // Aquí se realiza la actualización solo si se pasa el valor
-        }
-
-        // Guardar el plato actualizado
+        updateDishFields(existingDish, dishModel);
         dishPersistencePort.updateDish(existingDish);
-        log.info("Dish updated successfully: {}", existingDish);
     }
 
+    // Método para obtener el ID del usuario autenticado
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (Long) authentication.getDetails();
+    }
 
+    // Método para actualizar los campos del plato
+// Método para actualizar los campos del plato
+    private void updateDishFields(DishModel existingDish, DishModel dishModel) {
+        if (dishModel.getPrice() != null) {
+            existingDish.setPrice(dishModel.getPrice());
+        } else if (dishModel.getDescription() != null) {
+            existingDish.setDescription(dishModel.getDescription());
+        } else if (dishModel.getActive() != null) {
+            existingDish.setActive(dishModel.getActive());
+        }
+    }
 
 
     @Override
     public DishModel getDishById(Long idDish) {
         return dishPersistencePort.getDishById(idDish);
     }
+
+    @Override
+    public Page<DishModel> listDish(Pageable pageable, Long idCategory, Long idRestaurant) {
+        if (idCategory != null) {
+            return dishPersistencePort.findByiIdRestaurantAndIdCategory(idRestaurant, idCategory, pageable);
+        } else {
+            return dishPersistencePort.findByIdRestaurant(idRestaurant, pageable);
+        }
+    }
+
 }

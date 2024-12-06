@@ -1,18 +1,17 @@
 package com.example.foodplaza.application.dto.response;
 
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
-public class DishResponseDto {
-    private Long idDish;
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class DishListResponseDto {
     private String nameDish;
     private Integer price;
     private String description;
     private String urlImage;
-    private Long idCategory;
-    private Long idRestaurant;
-
 }
