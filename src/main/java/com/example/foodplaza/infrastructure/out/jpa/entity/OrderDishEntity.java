@@ -27,6 +27,7 @@ public class OrderDishEntity {
     @JoinColumn(name = "idDish", nullable = false)
     private DishEntity dish;
 
+
     @Column(name = "amount", nullable = false)
     private Integer amount;
 }

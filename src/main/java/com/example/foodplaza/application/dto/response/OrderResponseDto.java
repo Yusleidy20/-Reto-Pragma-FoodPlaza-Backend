@@ -15,7 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponseDto {
     private Long idOrder;
-
     private String stateOrder;
     private LocalDate dateOrder;
     private List<OrderDishResponseDto> dishes = new ArrayList<>();

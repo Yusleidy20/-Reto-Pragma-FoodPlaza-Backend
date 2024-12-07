@@ -8,6 +8,8 @@ import com.example.foodplaza.application.mapper.response.IOrderResponseMapper;
 import com.example.foodplaza.domain.api.IOrderServicePort;
 import com.example.foodplaza.domain.model.OrderModel;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,13 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
     }
 
     @Override
+    public Page<OrderResponseDto> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable) {
+        return orderServicePort.getOrdersByStateAndRestaurant(stateOrder, idRestaurant, pageable)
+                .map(orderResponseMapper::toDto);
+    }
+
+
+    @Override
     public OrderResponseDto getOrderById(Long idOrder) {
         OrderModel orderModel = orderServicePort.getOrderById(idOrder)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -60,9 +69,9 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
 
 
     @Override
-    public List<OrderResponseDto> getOrdersByCustomerId(Long customerId) {
+    public List<OrderResponseDto> getOrdersByChefId(Long chefId) {
         // Obtener los pedidos del cliente
-        return orderServicePort.getOrdersByCustomerId(customerId).stream()
+        return orderServicePort.getOrdersByChefId(chefId).stream()
                 .map(orderResponseMapper::toDto)
                 .toList();
     }

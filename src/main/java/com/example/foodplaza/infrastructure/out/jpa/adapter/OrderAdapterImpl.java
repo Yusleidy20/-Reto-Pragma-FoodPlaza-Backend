@@ -14,6 +14,8 @@ import com.example.foodplaza.infrastructure.out.jpa.mapper.IOrderEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IOrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,8 +64,8 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
     }
 
     @Override
-    public List<OrderModel> getOrdersByCustomerId(Long customerId) {
-        return orderRepository.findByCustomerId(customerId).stream()
+    public List<OrderModel> getOrdersByChefId(Long chefId) {
+        return orderRepository.findByChefId(chefId).stream()
                 .map(orderEntityMapper::toModel)
                 .toList();
     }
@@ -87,19 +89,26 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
     }
 
     @Override
-    public boolean hasActiveOrders(Long customerId) {
-        List<OrderEntity> activeOrders = orderRepository.findByCustomerIdAndStateOrderIn(
-                customerId, List.of(Constants.PENDING, Constants.IN_PREPARATION, Constants.READY)
+    public boolean hasActiveOrders(Long chefId) {
+        List<OrderEntity> activeOrders = orderRepository.findByChefIdAndStateOrderIn(
+                chefId, List.of(Constants.PENDING, Constants.IN_PREPARATION, Constants.READY)
         );
         return !activeOrders.isEmpty();
     }
+
+    @Override
+    public Page<OrderModel> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable) {
+        return orderRepository.findByStateOrderAndRestaurant_IdRestaurantWithDishes(stateOrder, idRestaurant, pageable)
+                .map(this::mapToModel);
+    }
+
 
 
     private OrderEntity mapToEntity(OrderModel model) {
         OrderEntity entity = new OrderEntity();
 
         entity.setIdOrder(model.getIdOrder());
-        entity.setCustomerId(model.getCustomerId());
+        entity.setChefId(model.getChefId());
         entity.setDateOrder(model.getDateOrder() != null ? model.getDateOrder() : LocalDate.now()); // Fecha por defecto
         entity.setStateOrder(model.getStateOrder());
         entity.setChefId(model.getChefId());
@@ -119,10 +128,9 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
         OrderModel model = new OrderModel();
 
         model.setIdOrder(entity.getIdOrder());
-        model.setCustomerId(entity.getCustomerId());
+        model.setChefId(entity.getChefId());
         model.setDateOrder(entity.getDateOrder());
         model.setStateOrder(entity.getStateOrder());
-        model.setChefId(entity.getChefId());
 
         if (entity.getRestaurant() != null) {
             RestaurantModel restaurantModel = new RestaurantModel();
@@ -143,22 +151,23 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
     private OrderDishModel mapOrderDishToModel(OrderDishEntity entity) {
         OrderDishModel model = new OrderDishModel();
+
         model.setIdOrderDish(entity.getIdOrderDish());
         model.setAmount(entity.getAmount());
 
         if (entity.getDish() != null) {
-            DishEntity dish = entity.getDish(); // Asegúrate de que dish no sea nulo
             DishModel dishModel = new DishModel();
-            dishModel.setIdDish(dish.getIdDish());
-            dishModel.setNameDish(dish.getNameDish()); // Ahora debe tener datos completos
-            dishModel.setPrice(dish.getPrice());
-            dishModel.setDescription(dish.getDescription());
-            dishModel.setUrlImage(dish.getUrlImage());
+            dishModel.setIdDish(entity.getDish().getIdDish());
+            dishModel.setNameDish(entity.getDish().getNameDish());
+            dishModel.setPrice(entity.getDish().getPrice());
+            dishModel.setDescription(entity.getDish().getDescription());
+            dishModel.setUrlImage(entity.getDish().getUrlImage());
             model.setDish(dishModel);
         }
 
         return model;
     }
+
 
 
 
@@ -193,7 +202,7 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
         // Asignar valores básicos
         model.setIdOrder(entity.getIdOrder());
-        model.setCustomerId(entity.getCustomerId());
+        model.setChefId(entity.getChefId());
         model.setDateOrder(entity.getDateOrder());
         model.setStateOrder(entity.getStateOrder());
         model.setChefId(entity.getChefId());

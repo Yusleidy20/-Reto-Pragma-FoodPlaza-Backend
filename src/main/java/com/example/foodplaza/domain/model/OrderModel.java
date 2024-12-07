@@ -15,9 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderModel {
     private Long idOrder;
-    private Long customerId;
     private LocalDate dateOrder;
-    private String stateOrder; // Puedes usar un enum si es más conveniente
+    private String stateOrder;
     private Long chefId;
     private RestaurantModel restaurant;
     private List<OrderDishModel> orderDishes = new ArrayList<>();

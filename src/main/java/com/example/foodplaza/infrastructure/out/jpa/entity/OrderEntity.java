@@ -20,8 +20,6 @@ public class OrderEntity {
     @Column(name = "idOrder")
     @Id
     private Long idOrder;
-    @Column(name = "customerId", nullable = false)
-    private Long customerId;
     @Column(name = "dateOrder", nullable = false)
     private LocalDate dateOrder;
     @Column(name = "stateOrder", nullable = false)
@@ -31,7 +29,8 @@ public class OrderEntity {
     @ManyToOne
     @JoinColumn(name = "idRestaurant", nullable = false)
     private RestaurantEntity restaurant;
-    @OneToMany(mappedBy = "orders")
+    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderDishEntity> orderDishes;
+
 
 }

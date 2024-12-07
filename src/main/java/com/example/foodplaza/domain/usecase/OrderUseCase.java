@@ -8,6 +8,8 @@ import com.example.foodplaza.domain.spi.persistence.IOrderDishPersistencePort;
 import com.example.foodplaza.domain.spi.persistence.IOrderPersistencePort;
 import com.example.foodplaza.infrastructure.configuration.Constants;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +29,7 @@ public class OrderUseCase implements IOrderServicePort {
         }
 
         // Verificar si el cliente tiene pedidos en proceso
-        boolean hasActiveOrders = orderPersistencePort.hasActiveOrders(orderModel.getCustomerId());
+        boolean hasActiveOrders = orderPersistencePort.hasActiveOrders(orderModel.getChefId());
         if (hasActiveOrders) {
             throw new IllegalStateException("The customer already has an active order in process.");
         }
@@ -48,8 +50,8 @@ public class OrderUseCase implements IOrderServicePort {
     }
 
     @Override
-    public List<OrderModel> getOrdersByCustomerId(Long customerId) {
-        return orderPersistencePort.getOrdersByCustomerId(customerId);
+    public List<OrderModel> getOrdersByChefId(Long chefId) {
+        return orderPersistencePort.getOrdersByChefId(chefId);
     }
     @Override
     public OrderModel assignChefToOrder(Long orderId, Long chefId) {
@@ -85,4 +87,17 @@ public class OrderUseCase implements IOrderServicePort {
         // Guardar el pedido actualizado
         return orderPersistencePort.saveOrder(order);
     }
+
+    public Page<OrderModel> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable) {
+        if (stateOrder == null || stateOrder.isBlank()) {
+            throw new IllegalArgumentException("State order is required.");
+        }
+
+        if (idRestaurant == null) {
+            throw new IllegalArgumentException("Restaurant ID is required.");
+        }
+
+        return orderPersistencePort.getOrdersByStateAndRestaurant(stateOrder, idRestaurant, pageable);
+    }
+
 }

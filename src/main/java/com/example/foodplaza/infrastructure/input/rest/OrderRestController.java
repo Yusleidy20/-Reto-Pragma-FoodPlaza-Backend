@@ -7,6 +7,9 @@ import com.example.foodplaza.application.handler.IOrderHandlerPort;
 import io.jsonwebtoken.Jwt;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,6 +46,17 @@ public class OrderRestController {
         OrderResponseDto updatedOrder = orderHandler.assignChefToOrder(orderId, chefId);
         return ResponseEntity.ok(updatedOrder);
     }
+    @GetMapping("/orders")
+    @PreAuthorize("hasAuthority('Employee')")
+    public ResponseEntity<Page<OrderResponseDto>> getOrdersByStateAndRestaurant(
+            @RequestParam String stateOrder,
+            @RequestParam Long idRestaurant,
+            @RequestParam int page,
+            @RequestParam int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<OrderResponseDto> orders = orderHandler.getOrdersByStateAndRestaurant(stateOrder, idRestaurant, pageable);
+        return ResponseEntity.ok(orders);
+    }
 
     @PutMapping("/orders/{orderId}/mark-as-ready")
     @PreAuthorize("hasAuthority('Chef')")
@@ -58,9 +72,4 @@ public class OrderRestController {
         return ResponseEntity.ok(orderResponse);
     }
 
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByCustomerId(@PathVariable Long customerId) {
-        List<OrderResponseDto> orders = orderHandler.getOrdersByCustomerId(customerId);
-        return ResponseEntity.ok(orders);
-    }
 }

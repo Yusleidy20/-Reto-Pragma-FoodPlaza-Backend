@@ -17,7 +17,7 @@ public class ValidatorService implements IValidatorServicePort {
     private final IOrderPersistencePort orderPersistencePort;
     @Override
     public void validateOrder(OrderModel orderModel) {
-        validateActiveOrders(orderModel.getCustomerId());
+        validateActiveOrders(orderModel.getChefId());
         validateOrderDishes(orderModel.getOrderDishes());
         validateRestaurantAndDishes(orderModel.getRestaurant().getIdRestaurant(), orderModel.getOrderDishes());
     }
@@ -29,8 +29,8 @@ public class ValidatorService implements IValidatorServicePort {
         }
     }
 
-    private void validateActiveOrders(Long customerId) {
-        List<OrderModel> activeOrders = orderPersistencePort.getOrdersByCustomerId(customerId);
+    private void validateActiveOrders(Long chefId) {
+        List<OrderModel> activeOrders = orderPersistencePort.getOrdersByChefId(chefId);
         boolean hasActiveOrders = activeOrders.stream()
                 .anyMatch(order -> isActiveState(order.getStateOrder()));
 
