@@ -11,8 +11,7 @@ public interface IOrderHandlerPort {
     OrderResponseDto createOrder(OrderRequestDto orderRequestDto);
     OrderResponseDto getOrderById(Long idOrder);
     List<OrderResponseDto> getOrdersByChefId(Long chefId);
-    OrderResponseDto assignChefToOrder(Long orderId, Long chefId);
     OrderResponseDto markOrderAsReady(Long orderId);
     Page<OrderResponseDto> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable);
-
+    OrderResponseDto assignEmployeeToOrder(Long orderId, Long employeeId);
 }

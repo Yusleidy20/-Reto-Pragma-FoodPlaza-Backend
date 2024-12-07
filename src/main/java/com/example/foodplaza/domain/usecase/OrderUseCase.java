@@ -53,22 +53,7 @@ public class OrderUseCase implements IOrderServicePort {
     public List<OrderModel> getOrdersByChefId(Long chefId) {
         return orderPersistencePort.getOrdersByChefId(chefId);
     }
-    @Override
-    public OrderModel assignChefToOrder(Long orderId, Long chefId) {
-        // Obtener el pedido
-        OrderModel order = orderPersistencePort.getOrderById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        // Validar que el estado sea "Pendiente"
-        validatorServicePort.validatePendingOrder(order);
-
-        // Asignar el chef y cambiar el estado
-        order.setChefId(chefId);
-        order.setStateOrder(Constants.IN_PREPARATION);
-
-        // Guardar el pedido actualizado
-        return orderPersistencePort.saveOrder(order);
-    }
 
     @Override
     public OrderModel markOrderAsReady(Long orderId) {
@@ -98,6 +83,24 @@ public class OrderUseCase implements IOrderServicePort {
         }
 
         return orderPersistencePort.getOrdersByStateAndRestaurant(stateOrder, idRestaurant, pageable);
+    }
+    @Override
+    public OrderModel assignEmployeeToOrder(Long orderId, Long employeeId) {
+        // Verificar que el pedido existe
+        OrderModel order = orderPersistencePort.getOrderById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        // Validar que el pedido esté en estado "PENDIENTE"
+        if (!Constants.PENDING.equals(order.getStateOrder())) {
+            throw new IllegalStateException("Only orders in 'PENDING' state can be assigned.");
+        }
+
+        // Asignar el empleado y cambiar el estado del pedido
+        order.setChefId(employeeId);
+        order.setStateOrder(Constants.IN_PREPARATION);
+
+        // Guardar los cambios
+        return orderPersistencePort.saveOrder(order);
     }
 
 }

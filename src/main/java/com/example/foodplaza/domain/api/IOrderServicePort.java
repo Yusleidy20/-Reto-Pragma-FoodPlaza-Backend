@@ -11,8 +11,9 @@ public interface IOrderServicePort {
     OrderModel createOrder(OrderModel orderModel);
     Optional<OrderModel> getOrderById(Long idOrder);
     List<OrderModel> getOrdersByChefId(Long chefId);
-    OrderModel assignChefToOrder(Long orderId, Long chefId); // Nuevo método
     OrderModel markOrderAsReady(Long orderId); // Nuevo método
     Page<OrderModel> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable);
+    OrderModel assignEmployeeToOrder(Long orderId, Long employeeId);
+
 
 }

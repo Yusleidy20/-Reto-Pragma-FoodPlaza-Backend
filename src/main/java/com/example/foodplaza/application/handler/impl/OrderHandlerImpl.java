@@ -37,12 +37,7 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
         return orderResponseMapper.toDto(createdOrder);
     }
 
-    @Override
-    public OrderResponseDto assignChefToOrder(Long orderId, Long chefId) {
-        // Asignar el chef y devolver el pedido actualizado
-        OrderModel updatedOrder = orderServicePort.assignChefToOrder(orderId, chefId);
-        return orderResponseMapper.toDto(updatedOrder);
-    }
+
 
     @Override
     public OrderResponseDto markOrderAsReady(Long orderId) {
@@ -67,12 +62,16 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
         return orderResponseMapper.toDto(orderModel);
     }
 
-
     @Override
     public List<OrderResponseDto> getOrdersByChefId(Long chefId) {
-        // Obtener los pedidos del cliente
-        return orderServicePort.getOrdersByChefId(chefId).stream()
-                .map(orderResponseMapper::toDto)
-                .toList();
+        return List.of();
     }
+
+
+    @Override
+    public OrderResponseDto assignEmployeeToOrder(Long orderId, Long employeeId) {
+        OrderModel updatedOrder = orderServicePort.assignEmployeeToOrder(orderId, employeeId);
+        return orderResponseMapper.toDto(updatedOrder);
+    }
+
 }

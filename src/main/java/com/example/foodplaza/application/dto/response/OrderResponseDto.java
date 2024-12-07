@@ -17,5 +17,6 @@ public class OrderResponseDto {
     private Long idOrder;
     private String stateOrder;
     private LocalDate dateOrder;
+    private Long chefId;
     private List<OrderDishResponseDto> dishes = new ArrayList<>();
 }

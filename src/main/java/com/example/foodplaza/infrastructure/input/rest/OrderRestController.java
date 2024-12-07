@@ -34,18 +34,6 @@ public class OrderRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
     }
 
-
-    @PostMapping("/orders/{orderId}/assign-chef")
-    @PreAuthorize("hasAuthority('Employee')")
-    public ResponseEntity<OrderResponseDto> assignChefToOrder(@PathVariable Long orderId) {
-        // Obtener el ID del chef desde la autenticación
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long chefId = (Long) authentication.getDetails();
-
-        // Asignar el chef
-        OrderResponseDto updatedOrder = orderHandler.assignChefToOrder(orderId, chefId);
-        return ResponseEntity.ok(updatedOrder);
-    }
     @GetMapping("/orders")
     @PreAuthorize("hasAuthority('Employee')")
     public ResponseEntity<Page<OrderResponseDto>> getOrdersByStateAndRestaurant(
@@ -57,6 +45,19 @@ public class OrderRestController {
         Page<OrderResponseDto> orders = orderHandler.getOrdersByStateAndRestaurant(stateOrder, idRestaurant, pageable);
         return ResponseEntity.ok(orders);
     }
+
+    @PutMapping("/orders/{orderId}/assign")
+    @PreAuthorize("hasAuthority('Employee')")
+    public ResponseEntity<OrderResponseDto> assignEmployeeToOrder(@PathVariable Long orderId) {
+        // Obtener el ID del empleado desde los detalles de autenticación
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long employeeId = (Long) authentication.getDetails(); // Extraer el userId
+
+        // Asignar el empleado al pedido
+        OrderResponseDto updatedOrder = orderHandler.assignEmployeeToOrder(orderId, employeeId);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
 
     @PutMapping("/orders/{orderId}/mark-as-ready")
     @PreAuthorize("hasAuthority('Chef')")

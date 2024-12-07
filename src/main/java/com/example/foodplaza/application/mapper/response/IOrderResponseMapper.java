@@ -15,6 +15,7 @@ public interface IOrderResponseMapper {
 
     // Mapea la entidad principal
     @Mapping(target = "dishes", source = "orderDishes") // Nombre debe coincidir con el atributo en OrderResponseDto
+    @Mapping(target = "chefId", source = "chefId")
     OrderResponseDto toDto(OrderModel orderModel);
 
     // Mapea los platos individuales
