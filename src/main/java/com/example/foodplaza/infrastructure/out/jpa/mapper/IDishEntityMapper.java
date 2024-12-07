@@ -8,27 +8,31 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        unmappedSourcePolicy = ReportingPolicy.IGNORE
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE, // Ignorar propiedades no mapeadas en el destino
+        unmappedSourcePolicy = ReportingPolicy.IGNORE // Ignorar propiedades no mapeadas en el origen
 )
 public interface IDishEntityMapper {
 
-    @Mapping(target = "idRestaurant", ignore = true)
+    // Convierte DishModel a DishEntity
+    @Mapping(source = "idRestaurant", target = "idRestaurant", qualifiedByName = "mapRestaurant")
+    @Mapping(source = "idCategory", target = "idCategory")
     DishEntity toDishEntity(DishModel dishModel);
 
-
-    @Mapping(target = "idDish", ignore = true)
-    @Mapping(target = "idRestaurant", source = "idRestaurant", qualifiedByName = "mapRestaurantEntityToLong")
+    // Convierte DishEntity a DishModel
+    @Mapping(source = "idRestaurant.idRestaurant", target = "idRestaurant")
+    @Mapping(source = "idCategory", target = "idCategory")
     DishModel toDishModel(DishEntity dishEntity);
 
-    @Named("mapRestaurantEntityToLong")
-    default Long mapRestaurantEntityToLong(RestaurantEntity restaurantEntity) {
-        if (restaurantEntity == null) {
+    // Método personalizado para manejar RestaurantEntity a Long
+    @Named("mapRestaurant")
+    default RestaurantEntity mapRestaurant(Long idRestaurant) {
+        if (idRestaurant == null) {
             return null;
         }
-        return restaurantEntity.getIdRestaurant();
+        RestaurantEntity restaurant = new RestaurantEntity();
+        restaurant.setIdRestaurant(idRestaurant);
+        return restaurant;
     }
-
-
 }

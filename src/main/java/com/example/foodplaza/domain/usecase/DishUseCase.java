@@ -1,6 +1,6 @@
 package com.example.foodplaza.domain.usecase;
 
-import com.example.foodplaza.application.dto.request.DishUpdateRequestDto;
+
 import com.example.foodplaza.domain.api.IDishServicePort;
 import com.example.foodplaza.domain.exception.ResourceNotFoundException;
 import com.example.foodplaza.domain.exception.UnauthorizedException;
@@ -8,9 +8,6 @@ import com.example.foodplaza.domain.model.DishModel;
 import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.persistence.IDishPersistencePort;
 import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
-import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -72,13 +69,14 @@ public class DishUseCase implements IDishServicePort {
     }
 
     // Método para actualizar los campos del plato
-// Método para actualizar los campos del plato
     private void updateDishFields(DishModel existingDish, DishModel dishModel) {
         if (dishModel.getPrice() != null) {
             existingDish.setPrice(dishModel.getPrice());
-        } else if (dishModel.getDescription() != null) {
+        }
+        if (dishModel.getDescription() != null) {
             existingDish.setDescription(dishModel.getDescription());
-        } else if (dishModel.getActive() != null) {
+        }
+        if (dishModel.getActive() != null) {
             existingDish.setActive(dishModel.getActive());
         }
     }

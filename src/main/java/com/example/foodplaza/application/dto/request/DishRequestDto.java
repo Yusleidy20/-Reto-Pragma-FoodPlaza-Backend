@@ -31,16 +31,5 @@ public class DishRequestDto {
     @Positive(message = "The restaurant ID must be a positive number.")
     private Long idRestaurant;
 
-    @Override
-    public String toString() {
-        return "DishRequestDto{" +
-                "nameDish='" + nameDish + '\'' +
-                ", price=" + price +
-                ", description='" + description + '\'' +
-                ", urlImage='" + urlImage + '\'' +
-                ", idCategory='" + idCategory + '\'' +
-                ", idRestaurant=" + idRestaurant +
-                '}';
-    }
 
 }

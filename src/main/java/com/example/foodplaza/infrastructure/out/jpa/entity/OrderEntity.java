@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
+
 @Setter
 @Getter
 @Entity
@@ -23,11 +25,13 @@ public class OrderEntity {
     @Column(name = "dateOrder", nullable = false)
     private LocalDate dateOrder;
     @Column(name = "stateOrder", nullable = false)
-    private Boolean stateOrder;
-    @Column(name = "chefId", nullable = false)
+    private String stateOrder;
+    @Column(name = "chefId")
     private Long chefId;
     @ManyToOne
     @JoinColumn(name = "idRestaurant", nullable = false)
     private RestaurantEntity restaurant;
+    @OneToMany(mappedBy = "orders")
+    private List<OrderDishEntity> orderDishes;
 
 }

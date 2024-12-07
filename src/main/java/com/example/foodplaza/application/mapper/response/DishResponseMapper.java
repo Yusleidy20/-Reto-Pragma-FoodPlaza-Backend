@@ -11,12 +11,9 @@ import org.mapstruct.ReportingPolicy;
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface DishResponseMapper {
-    @Mapping(target = "idCategory", ignore = true)
+
     DishResponseDto toDishResponse(DishModel dishModel);
 
-    @Mapping(source = "nameDish", target = "nameDish")
-    @Mapping(source = "description", target = "description")
-    @Mapping(source = "price", target = "price")
-    @Mapping(source = "urlImage", target = "urlImage")
+
     DishListResponseDto toDishListResponse(DishModel dishModel);
 }

@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
@@ -70,6 +72,34 @@ public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
         return optionalRestaurantEntity.map(restaurantEntityMapper::toRestaurantModel);
     }
 
+    @Override
+    public List<RestaurantModel> getAllRestaurants() {
+        return restaurantRepositoryMySql.findAll().stream()
+                .map(this::convertToModel)
+                .toList(); // Lista inmutable y más eficiente
+    }
+
+    @Override
+    public boolean validateDishesBelongToRestaurant(Long idRestaurant, List<Long> dishIds) {
+        // Lógica para validar los platos
+        List<Long> dishIdsFromRestaurant = restaurantRepositoryMySql.findDishIdsByRestaurantId(idRestaurant);
+
+        // Verificar si todos los IDs de los platos están en la lista de IDs del restaurante
+        return dishIds.stream().allMatch(dishIdsFromRestaurant::contains);
+    }
+
+
+    private RestaurantModel convertToModel(RestaurantEntity entity) {
+        return new RestaurantModel(
+                entity.getIdRestaurant(),
+                entity.getNameRestaurant(),
+                entity.getNit(),
+                entity.getAddress(),
+                entity.getPhoneNumber(),
+                entity.getUrlLogo(),
+                entity.getOwnerId()
+        );
+    }
 
 }
 

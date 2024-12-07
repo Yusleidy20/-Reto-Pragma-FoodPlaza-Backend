@@ -99,5 +99,12 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Collections.singletonMap(MESSAGE_KEY, "Duplicate entry for key: " + e.getMessage()));
     }
+    // Manejo de errores de estado ilegal
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException ex) {
+        log.error("Business logic error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT) // Usamos 409 para conflictos de lógica de negocio
+                .body(Collections.singletonMap(MESSAGE_KEY, ex.getMessage()));
+    }
 
 }

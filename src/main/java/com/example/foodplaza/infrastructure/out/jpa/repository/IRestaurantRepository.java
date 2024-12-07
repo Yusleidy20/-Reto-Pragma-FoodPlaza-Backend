@@ -5,7 +5,10 @@ import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface IRestaurantRepository extends JpaRepository<RestaurantEntity, Long> {
@@ -13,5 +16,10 @@ public interface IRestaurantRepository extends JpaRepository<RestaurantEntity, L
 
     Page<RestaurantEntity> findAllByOrderByNameRestaurantAsc(Pageable pageable);
     boolean existsByNit(String nit);
+
+    @Query("SELECT d.idDish FROM DishEntity d WHERE d.idRestaurant.idRestaurant = :idRestaurant")
+    List<Long> findDishIdsByRestaurantId(@Param("idRestaurant") Long idRestaurant);
+
+
 
 }

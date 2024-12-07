@@ -1,152 +1,115 @@
 package com.example.foodplaza.domain.usecase;
 
-import com.example.foodplaza.domain.exception.ResourceNotFoundException;
+
 import com.example.foodplaza.domain.exception.UnauthorizedException;
+import com.example.foodplaza.domain.model.CategoryModel;
 import com.example.foodplaza.domain.model.DishModel;
+import com.example.foodplaza.domain.model.RestaurantModel;
 import com.example.foodplaza.domain.spi.persistence.IDishPersistencePort;
-import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
-import com.example.foodplaza.infrastructure.out.jpa.repository.IRestaurantRepository;
+import com.example.foodplaza.domain.spi.persistence.IRestaurantPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
-
-import org.mockito.*;
-
-import org.springframework.transaction.annotation.Transactional;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
- class DishUseCaseTest {
+@ExtendWith(MockitoExtension.class)
+class DishUseCaseTest {
 
-    @Mock
-    private IDishPersistencePort dishPersistencePort;
+   @Mock
+   private IDishPersistencePort dishPersistencePort;
 
-    @Mock
-    private IRestaurantRepository restaurantRepository;
+   @Mock
+   private IRestaurantPersistencePort restaurantPersistencePort;
 
-    @InjectMocks
-    private DishUseCase dishUseCase;
+   @InjectMocks
+   private DishUseCase dishUseCase;
 
-    @Mock
-    private Authentication authentication;
+   @Mock
+   private Authentication authentication;
 
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
+   private static final Long RESTAURANT_ID = 1L;
+   private static final Long OWNER_ID = 100L;
+   private static final Long DISH_ID = 10L;
+   CategoryModel categoryModel = new CategoryModel(1L, "Main Course", "Main course dishes");
 
-    @Test
-     void testSaveDish_Success() {
-        // Arrange
-        DishModel dishModel = new DishModel();
-        dishModel.setIdRestaurant(1L);
-        dishModel.setPrice(100000);
-        dishModel.setDescription("Delicious dish");
+   private RestaurantModel restaurantModel;
+   private DishModel dishModel;
 
-        RestaurantEntity restaurant = new RestaurantEntity();
-        restaurant.setOwnerId(1L);
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+   @BeforeEach
+   void setUp() {
+      // Configuración de datos base para pruebas
+      restaurantModel = new RestaurantModel(RESTAURANT_ID, "Test Restaurant","554444","Address", "+567425", "http:12239043.com" ,OWNER_ID);
+      dishModel = new DishModel(DISH_ID, "Dish Name", 100, "Description", "Local.png", categoryModel, 1L,true);
+   }
+   @Test
+   void saveDish_shouldSaveDish_whenUserIsOwner() {
+      // Configuración del mock para el contexto de seguridad
+      SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
+      SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        when(authentication.getDetails()).thenReturn(1L); // Simulando que el usuario autenticado es el propietario del restaurante
+      when(authentication.getDetails()).thenReturn(OWNER_ID);
 
-        // Act
-        dishUseCase.saveDish(dishModel);
+      // Configuración del mock para el restaurante
+      when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurantModel));
 
-        // Assert
-        verify(dishPersistencePort, times(1)).saveDish(dishModel);
-    }
+      // Acción
+      dishUseCase.saveDish(dishModel);
 
-    @Test
-     void testSaveDish_Unauthorized() {
-        // Arrange
-        DishModel dishModel = new DishModel();
-        dishModel.setIdRestaurant(1L);
+      // Verificaciones
+      verify(restaurantPersistencePort).findById(RESTAURANT_ID);
+      verify(dishPersistencePort).saveDish(dishModel);
 
-        RestaurantEntity restaurant = new RestaurantEntity();
-        restaurant.setOwnerId(2L); // no es el propietario autenticado
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+      assertTrue(dishModel.getActive(), "Dish should be active by default");
+   }
+   @Test
+   void saveDish_shouldThrowUnauthorizedException_whenUserIsNotOwner() {
+      // Configuración del mock para el contexto de seguridad
+      SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
+      SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        when(authentication.getDetails()).thenReturn(1L); //no es el propietario
+      when(authentication.getDetails()).thenReturn(999L); // Usuario no propietario
 
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
-            dishUseCase.saveDish(dishModel);
-        });
-        assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
-    }
+      // Configuración del mock para el restaurante
+      when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurantModel));
 
-    @Test
-    @Transactional
-     void testUpdateDish_Success() {
-        // Arrange
-        DishModel dishModel = new DishModel();
-        dishModel.setIdDish(1L);
-        dishModel.setPrice(12000);
-        dishModel.setDescription("Updated description");
+      // Verificaciones de excepción
+      UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
+         dishUseCase.saveDish(dishModel);
+      });
 
-        DishModel existingDish = new DishModel();
-        existingDish.setIdDish(1L);
-        existingDish.setIdRestaurant(1L);
-        existingDish.setPrice(10000);
-        existingDish.setDescription("Old description");
+      assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
+   }
+   @Test
+   void updateDish_shouldUpdateFields_whenUserIsOwner() {
+      // Configuración del mock para el contexto de seguridad
+      SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
+      SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        RestaurantEntity restaurant = new RestaurantEntity();
-        restaurant.setOwnerId(1L); // El propietario si es el autenticado
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+      when(authentication.getDetails()).thenReturn(OWNER_ID);
 
-        when(dishPersistencePort.getDishById(1L)).thenReturn(existingDish);
+      // Configuración del mock para el restaurante y plato
+      when(restaurantPersistencePort.findById(RESTAURANT_ID)).thenReturn(Optional.of(restaurantModel));
+      when(dishPersistencePort.getDishById(DISH_ID)).thenReturn(dishModel);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        when(authentication.getDetails()).thenReturn(1L); // es el propietario autenticado
+      DishModel updatedDish = new DishModel(DISH_ID, null, 200, "Updated Description","Local.png", null, RESTAURANT_ID, true);
+      dishUseCase.updateDish(updatedDish);
 
-        // Act
-        dishUseCase.updateDish(dishModel);
+      // Verificaciones
+      assertEquals(200, dishModel.getPrice());
+      assertEquals("Updated Description", dishModel.getDescription());
 
-        // Assert
-        assertEquals(12000, existingDish.getPrice());
-        assertEquals("Updated description", existingDish.getDescription());
-        verify(dishPersistencePort, times(1)).updateDish(existingDish);
-    }
+      verify(dishPersistencePort).updateDish(dishModel);
+   }
 
-    @Test
-     void testValidateOwner_Success() {
-        // Arrange
-        RestaurantEntity restaurant = new RestaurantEntity();
-        restaurant.setOwnerId(1L);
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        when(authentication.getDetails()).thenReturn(1L); // Simulando que el usuario autenticado es el propietario
-
-        // Act
-        dishUseCase.validateOwner(1L, 1L);
-
-        // Assert
-        // No exceptions should be thrown, so this is considered a success.
-    }
-
-    @Test
-     void testValidateOwner_Unauthorized() {
-        // Arrange
-        RestaurantEntity restaurant = new RestaurantEntity();
-        restaurant.setOwnerId(2L); // El propietario del restaurante no es el usuario autenticado
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        when(authentication.getDetails()).thenReturn(1L); // El usuario autenticado no es el propietario
-
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(UnauthorizedException.class, () -> {
-            dishUseCase.validateOwner(1L, 1L);
-        });
-        assertEquals("You are not authorized to perform this action on this restaurant.", exception.getMessage());
-    }
 }

@@ -1,6 +1,6 @@
 package com.example.foodplaza.domain.usecase;
 
-import com.example.foodplaza.application.dto.request.CategoryRequestDto;
+
 import com.example.foodplaza.domain.api.ICategoryServicePort;
 import com.example.foodplaza.domain.model.CategoryModel;
 import com.example.foodplaza.domain.spi.persistence.ICategoryPersistencePort;

@@ -5,7 +5,7 @@ import com.example.foodplaza.application.dto.request.DishUpdateRequestDto;
 import com.example.foodplaza.application.dto.response.DishListResponseDto;
 import com.example.foodplaza.application.dto.response.DishResponseDto;
 import com.example.foodplaza.application.handler.IDishHandlerPort;
-import com.example.foodplaza.application.mapper.request.DishRequestMapper;
+import com.example.foodplaza.application.mapper.request.IDishRequestMapper;
 import com.example.foodplaza.application.mapper.response.DishResponseMapper;
 import com.example.foodplaza.domain.api.IDishServicePort;
 import com.example.foodplaza.domain.model.DishModel;
@@ -24,7 +24,7 @@ import java.util.List;
 public class DishHandlerImpl implements IDishHandlerPort {
 
     private final IDishServicePort dishServicePort;
-    private final DishRequestMapper dishRequestMapper;
+    private final IDishRequestMapper dishRequestMapper;
     private final DishResponseMapper dishResponseMapper;
 
     @Override

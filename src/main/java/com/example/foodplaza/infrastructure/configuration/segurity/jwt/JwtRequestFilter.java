@@ -2,20 +2,23 @@ package com.example.foodplaza.infrastructure.configuration.segurity.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+
 @AllArgsConstructor
+@WebFilter("/*")
 public class JwtRequestFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtRequestFilter.class);
 
@@ -29,7 +32,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         Long userId = null;
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
+            token = authorizationHeader.substring(7); // Obtener el token sin "Bearer "
+
+            // Usar el método getUserIdFromToken() para extraer el userId
             username = JwtUtil.getUsernameFromToken(token);
             userId = JwtUtil.getUserIdFromToken(token); // Extraer el userId
 
