@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IOrderRepository extends JpaRepository<OrderEntity, Long> {
     List<OrderEntity> findByChefId(Long chefId);
@@ -16,5 +17,7 @@ public interface IOrderRepository extends JpaRepository<OrderEntity, Long> {
     Page<OrderEntity> findByStateOrderAndRestaurant_IdRestaurant(String stateOrder, Long idRestaurant, Pageable pageable);
     @Query("SELECT o FROM OrderEntity o LEFT JOIN FETCH o.orderDishes WHERE o.stateOrder = :stateOrder AND o.restaurant.idRestaurant = :idRestaurant")
     Page<OrderEntity> findByStateOrderAndRestaurant_IdRestaurantWithDishes(@Param("stateOrder") String stateOrder, @Param("idRestaurant") Long idRestaurant, Pageable pageable);
+    @Query("SELECT o FROM OrderEntity o LEFT JOIN FETCH o.orderDishes d WHERE o.idOrder = :idOrder")
+    Optional<OrderEntity> findByIdWithDishes(@Param("idOrder") Long idOrder);
 
 }

@@ -19,6 +19,8 @@ public class OrderModel {
     private String stateOrder;
     private Long chefId;
     private RestaurantModel restaurant;
+    private Long customerId;
+    private String securityPin;
     private List<OrderDishModel> orderDishes = new ArrayList<>();
 }
 

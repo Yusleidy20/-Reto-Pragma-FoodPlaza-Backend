@@ -6,11 +6,14 @@ import com.example.foodplaza.application.handler.impl.OrderHandlerImpl;
 import com.example.foodplaza.application.mapper.request.IOrderRequestMapper;
 import com.example.foodplaza.application.mapper.response.IOrderResponseMapper;
 import com.example.foodplaza.domain.api.*;
+import com.example.foodplaza.domain.spi.feignclients.ISmsClientPort;
 import com.example.foodplaza.domain.spi.feignclients.IUserFeignClientPort;
 import com.example.foodplaza.domain.spi.persistence.*;
 import com.example.foodplaza.domain.usecase.*;
 import com.example.foodplaza.infrastructure.out.jpa.adapter.*;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter.SmsClientFeignAdapter;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter.UserFeignAdapter;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ISmsFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserDtoMapper;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.*;
@@ -43,7 +46,10 @@ public class ConfigurationBean {
     public IUserFeignClientPort userFeignClientPort(){
         return new UserFeignAdapter(userFeignClient, userDtoMapper);
     }
-
+    @Bean
+    public ISmsClientPort smsClientPort(ISmsFeignClient smsFeignClient) {
+        return new SmsClientFeignAdapter(smsFeignClient);
+    }
     @Bean
     public IRestaurantServicePort restaurantServicePort() {
         return new RestaurantUseCase(restaurantPersistencePort(), userFeignClientPort());
@@ -82,10 +88,11 @@ public class ConfigurationBean {
     @Bean
     public IOrderServicePort orderServicePort(IOrderPersistencePort orderPersistencePort,
                                               IOrderDishPersistencePort orderDishPersistencePort,
-                                              IValidatorServicePort validatorServicePort) {
-        return new OrderUseCase(orderPersistencePort, orderDishPersistencePort, validatorServicePort);
+                                              IValidatorServicePort validatorServicePort,
+                                              IUserFeignClient userClientPort,
+                                              ISmsClientPort smsClientPort) {
+        return new OrderUseCase(orderPersistencePort, orderDishPersistencePort, validatorServicePort, userClientPort, smsClientPort);
     }
-
 
     @Bean
     public IOrderPersistencePort orderPersistencePort(IOrderRepository orderRepository,

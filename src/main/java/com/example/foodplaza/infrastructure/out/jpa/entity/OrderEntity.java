@@ -26,10 +26,14 @@ public class OrderEntity {
     private String stateOrder;
     @Column(name = "chefId")
     private Long chefId;
+    @Column(name = "customerId", nullable = false)
+    private Long customerId;
+    @Column(name = "securityPin") // Agregado para almacenar el PIN
+    private String securityPin;
     @ManyToOne
     @JoinColumn(name = "idRestaurant", nullable = false)
     private RestaurantEntity restaurant;
-    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderDishEntity> orderDishes;
 
 

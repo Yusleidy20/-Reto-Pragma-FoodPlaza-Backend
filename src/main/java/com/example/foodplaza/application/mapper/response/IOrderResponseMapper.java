@@ -14,13 +14,13 @@ import java.util.List;
 public interface IOrderResponseMapper {
 
     // Mapea la entidad principal
-    @Mapping(target = "dishes", source = "orderDishes") // Nombre debe coincidir con el atributo en OrderResponseDto
+    @Mapping(target = "dishes", source = "orderDishes")  // Nombre debe coincidir con el atributo en OrderResponseDto
     @Mapping(target = "chefId", source = "chefId")
     OrderResponseDto toDto(OrderModel orderModel);
 
     // Mapea los platos individuales
-    @Mapping(target = "nameDish", source = "dish.nameDish")// Atributo nameDish en DishModel
-    @Mapping(target = "amount", source = "amount")         // Atributo amount en OrderDishModel
+    @Mapping(target = "nameDish", source = "dish.nameDish")  // Atributo nameDish en DishModel
+    @Mapping(target = "amount", source = "amount")            // Atributo amount en OrderDishModel
     OrderDishResponseDto toDishResponseDto(OrderDishModel orderDishModel);
 
     // Convierte la lista de platos

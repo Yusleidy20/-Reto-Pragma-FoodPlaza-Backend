@@ -39,12 +39,21 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
 
 
 
+
     @Override
-    public OrderResponseDto markOrderAsReady(Long orderId) {
-        // Marcar el pedido como listo y devolverlo
-        OrderModel updatedOrder = orderServicePort.markOrderAsReady(orderId);
+    public OrderResponseDto markOrderAsReadyAndNotify(Long orderId) {
+        // Llamar al caso de uso para marcar como listo y notificar
+        OrderModel updatedOrder = orderServicePort.markOrderAsReadyAndNotify(orderId);
         return orderResponseMapper.toDto(updatedOrder);
     }
+
+    @Override
+    public OrderResponseDto markOrderAsDelivered(Long orderId, String securityPin) {
+        // Llamar al caso de uso para marcar como entregado
+        OrderModel updatedOrder = orderServicePort.markOrderAsDelivered(orderId, securityPin);
+        return orderResponseMapper.toDto(updatedOrder);
+    }
+
 
     @Override
     public Page<OrderResponseDto> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable) {

@@ -59,11 +59,21 @@ public class OrderRestController {
     }
 
 
-    @PutMapping("/orders/{orderId}/mark-as-ready")
-    @PreAuthorize("hasAuthority('Chef')")
-    public ResponseEntity<OrderResponseDto> markOrderAsReady(@PathVariable Long orderId) {
-        // Marcar el pedido como listo
-        OrderResponseDto updatedOrder = orderHandler.markOrderAsReady(orderId);
+    @PutMapping("/orders/{orderId}/ready")
+    @PreAuthorize("hasAuthority('Employee')")
+    public ResponseEntity<OrderResponseDto> markOrderAsReadyAndNotify(@PathVariable Long orderId) {
+        // Cambiar el estado del pedido y notificar al cliente
+        OrderResponseDto updatedOrder = orderHandler.markOrderAsReadyAndNotify(orderId);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+    @PutMapping("/orders/{orderId}/deliver")
+    @PreAuthorize("hasAuthority('Employee')")
+    public ResponseEntity<OrderResponseDto> markOrderAsDelivered(
+            @PathVariable Long orderId,
+            @RequestParam String securityPin) {
+        // Llamar al handler para marcar el pedido como entregado
+        OrderResponseDto updatedOrder = orderHandler.markOrderAsDelivered(orderId, securityPin);
         return ResponseEntity.ok(updatedOrder);
     }
 
@@ -72,5 +82,7 @@ public class OrderRestController {
         OrderResponseDto orderResponse = orderHandler.getOrderById(idOrder);
         return ResponseEntity.ok(orderResponse);
     }
+
+
 
 }

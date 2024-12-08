@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "user-service", url = "http://localhost:8095")
 public interface IUserFeignClient {
+
     @GetMapping("/user-micro/user/existUserById/{userId}")
     boolean existUserById(@PathVariable("userId") Long userId);
 
     @GetMapping("/user-micro/user/{userId}")
-    UserDto getUserById(@PathVariable("userId") Long userId);
+    UserDto getUserById(@PathVariable("userId") Long userId); // Asegúrate de que userId no sea nulo.
 
     @GetMapping("/user-micro/user/email/{email}")
     UserDto getUserByEmail(@PathVariable("email") String email);
-
 }

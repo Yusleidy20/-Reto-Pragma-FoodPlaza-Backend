@@ -29,39 +29,41 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
     @Override
     public OrderModel saveOrder(OrderModel orderModel) {
-        if (orderModel.getRestaurant() == null || orderModel.getRestaurant().getIdRestaurant() == null) {
-            throw new IllegalArgumentException("The restaurant ID is required.");
+
+        // Validar que el PIN esté presente si el estado es READY
+        if (Constants.DELIVERED.equals(orderModel.getStateOrder()) && (orderModel.getSecurityPin() == null || orderModel.getSecurityPin().isEmpty())) {
+            throw new IllegalArgumentException("Security PIN is required for orders in READY state.");
         }
 
-        if (orderModel.getOrderDishes() == null || orderModel.getOrderDishes().isEmpty()) {
-            throw new IllegalArgumentException("The order must include at least one dish.");
-        }
-
-        // Mapeo del modelo a la entidad
+        // Usar mapToEntity para convertir manualmente
         OrderEntity orderEntity = mapToEntity(orderModel);
 
-        // Asignar los `OrderDishes` al pedido
-        if (orderModel.getOrderDishes() != null) {
-            List<OrderDishEntity> dishEntities = orderModel.getOrderDishes().stream()
-                    .map(this::mapOrderDishToEntity)
-                    .toList();
-            dishEntities.forEach(dish -> dish.setOrders(orderEntity)); // Relación bidireccional
-            orderEntity.setOrderDishes(dishEntities);
-        }
+        // Configurar relaciones para los platos
+        List<OrderDishEntity> dishEntities = orderModel.getOrderDishes().stream()
+                .map(this::mapOrderDishToEntity)
+                .toList();
+        dishEntities.forEach(dish -> dish.setOrders(orderEntity));
+        orderEntity.setOrderDishes(dishEntities);
 
-        // Guardar el pedido en la base de datos
+        // Guardar en la base de datos
         OrderEntity savedEntity = orderRepository.save(orderEntity);
 
-        // Convertir la entidad guardada a modelo y devolver
-        return mapToModel(savedEntity);
+        // Convertir de vuelta a modelo para la respuesta
+        return mapToModelWithDishes(savedEntity);
     }
+
+
+
 
 
     @Override
     public Optional<OrderModel> getOrderById(Long idOrder) {
-        return orderRepository.findById(idOrder)
-                .map(this::mapToModelWithDishes); // Usar un método que incluya las relaciones
+        // Llama a la consulta personalizada que incluye los `OrderDishes`
+        return orderRepository.findByIdWithDishes(idOrder)
+                .map(this::mapToModelWithDishes);
     }
+
+
 
     @Override
     public List<OrderModel> getOrdersByChefId(Long chefId) {
@@ -109,9 +111,10 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
         entity.setIdOrder(model.getIdOrder());
         entity.setChefId(model.getChefId());
-        entity.setDateOrder(model.getDateOrder() != null ? model.getDateOrder() : LocalDate.now()); // Fecha por defecto
+        entity.setDateOrder(model.getDateOrder() != null ? model.getDateOrder() : LocalDate.now());
         entity.setStateOrder(model.getStateOrder());
-        entity.setChefId(model.getChefId());
+        entity.setCustomerId(model.getCustomerId());
+        entity.setSecurityPin(model.getSecurityPin()); // Asignar el PIN de seguridad
 
         if (model.getRestaurant() != null) {
             RestaurantEntity restaurantEntity = new RestaurantEntity();
@@ -119,9 +122,9 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
             entity.setRestaurant(restaurantEntity);
         }
 
-
         return entity;
     }
+
 
 
     private OrderModel mapToModel(OrderEntity entity) {
@@ -171,6 +174,9 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
 
 
+
+
+
     private OrderDishEntity mapOrderDishToEntity(OrderDishModel model) {
         // Crear una nueva instancia de OrderDishEntity
         OrderDishEntity entity = new OrderDishEntity();
@@ -197,24 +203,23 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
         return entity; // Retornar la entidad completa
     }
 
+
     private OrderModel mapToModelWithDishes(OrderEntity entity) {
         OrderModel model = new OrderModel();
 
-        // Asignar valores básicos
         model.setIdOrder(entity.getIdOrder());
         model.setChefId(entity.getChefId());
+        model.setCustomerId(entity.getCustomerId());
         model.setDateOrder(entity.getDateOrder());
         model.setStateOrder(entity.getStateOrder());
-        model.setChefId(entity.getChefId());
+        model.setSecurityPin(entity.getSecurityPin()); // Asignar el PIN aquí
 
-        // Asignar restaurante
         if (entity.getRestaurant() != null) {
             RestaurantModel restaurantModel = new RestaurantModel();
             restaurantModel.setIdRestaurant(entity.getRestaurant().getIdRestaurant());
             model.setRestaurant(restaurantModel);
         }
 
-        // Asignar los platos del pedido
         if (entity.getOrderDishes() != null) {
             List<OrderDishModel> dishModels = entity.getOrderDishes().stream()
                     .map(this::mapOrderDishToModel)
@@ -224,4 +229,8 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
         return model;
     }
+
+
+
+
 }

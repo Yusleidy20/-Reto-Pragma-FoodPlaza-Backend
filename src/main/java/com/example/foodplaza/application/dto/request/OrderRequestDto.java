@@ -14,7 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderRequestDto {
-    private Long customerId;
     @NotNull(message = "Restaurant ID is required.")
     @Positive(message = "Restaurant ID must be a positive number.")
     private Long idRestaurant;

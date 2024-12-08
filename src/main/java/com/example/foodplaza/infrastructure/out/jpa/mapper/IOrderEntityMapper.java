@@ -7,8 +7,10 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", uses = {IOrderDishEntityMapper.class})
 public interface IOrderEntityMapper {
-
+    @Mapping(source = "securityPin", target = "securityPin")
+    @Mapping(source = "customerId", target = "customerId")
     OrderEntity toEntity(OrderModel orderModel);
-
+    @Mapping(source = "securityPin", target = "securityPin")
+    @Mapping(source = "customerId", target = "customerId")
     OrderModel toModel(OrderEntity orderEntity);
 }
