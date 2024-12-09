@@ -16,5 +16,6 @@ public interface IRestaurantPersistencePort {
     boolean existsByNit(String nit);
     Optional<RestaurantModel> findById(Long idRestaurant);
     List<RestaurantModel> getAllRestaurants();
+    List<Long> getOrderIdsByRestaurantId(Long idRestaurant);
     boolean validateDishesBelongToRestaurant(Long idRestaurant, List<Long> dishIds);
 }

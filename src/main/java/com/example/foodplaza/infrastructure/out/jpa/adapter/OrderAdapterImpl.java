@@ -10,6 +10,7 @@ import com.example.foodplaza.infrastructure.out.jpa.entity.DishEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.OrderDishEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.OrderEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ITraceabilityFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IOrderEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IOrderRepository;
@@ -132,6 +133,7 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
         model.setIdOrder(entity.getIdOrder());
         model.setChefId(entity.getChefId());
+        model.setCustomerId(entity.getCustomerId()); // Este valor debe estar presente
         model.setDateOrder(entity.getDateOrder());
         model.setStateOrder(entity.getStateOrder());
 
@@ -209,7 +211,7 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
         model.setIdOrder(entity.getIdOrder());
         model.setChefId(entity.getChefId());
-        model.setCustomerId(entity.getCustomerId());
+        model.setCustomerId(entity.getCustomerId()); // Asegúrate de mapear customerId
         model.setDateOrder(entity.getDateOrder());
         model.setStateOrder(entity.getStateOrder());
         model.setSecurityPin(entity.getSecurityPin()); // Asignar el PIN aquí

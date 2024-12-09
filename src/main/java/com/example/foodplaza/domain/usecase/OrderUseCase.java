@@ -1,6 +1,7 @@
 package com.example.foodplaza.domain.usecase;
 
 
+import com.example.foodplaza.application.dto.request.TraceabilityRequestDto;
 import com.example.foodplaza.domain.api.IOrderServicePort;
 import com.example.foodplaza.domain.api.IValidatorServicePort;
 import com.example.foodplaza.domain.model.OrderModel;
@@ -9,7 +10,7 @@ import com.example.foodplaza.domain.spi.persistence.IOrderDishPersistencePort;
 import com.example.foodplaza.domain.spi.persistence.IOrderPersistencePort;
 import com.example.foodplaza.infrastructure.configuration.Constants;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.UserDto;
-import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ISmsFeignClient;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ITraceabilityFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @RequiredArgsConstructor
 public class OrderUseCase implements IOrderServicePort {
@@ -29,40 +31,23 @@ public class OrderUseCase implements IOrderServicePort {
     private final IValidatorServicePort validatorServicePort;
     private final IUserFeignClient userClientPort;
     private final ISmsClientPort smsClientPort;
-
+    private final ITraceabilityFeignClient traceabilityFeignClient;
+    private static final Random RANDOM = new Random();
     @Override
     public OrderModel createOrder(OrderModel orderModel) {
-        if (orderModel.getRestaurant() == null || orderModel.getRestaurant().getIdRestaurant() == null) {
-            throw new IllegalArgumentException("Restaurant ID is required.");
-        }
+        validateCreateOrder(orderModel);
 
-        // Validar que el pedido no esté en estado "Entregado"
-        if (Constants.DELIVERED.equals(orderModel.getStateOrder())) {
-            throw new IllegalStateException("Delivered orders cannot be modified.");
-        }
-
-        // Obtener el userId desde el contexto de seguridad (de la autenticación)
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long customerId = (Long) authentication.getDetails();  // Obtiene el userId del token
-
-        // Asignar el customerId al modelo
+        Long customerId = getAuthenticatedUserId();
         orderModel.setCustomerId(customerId);
-
-        // Verificar si el cliente tiene pedidos en proceso
-        boolean hasActiveOrders = orderPersistencePort.hasActiveOrders(orderModel.getChefId());
-        if (hasActiveOrders) {
-            throw new IllegalStateException("The customer already has an active order in process.");
-        }
-
-        // Configurar estado inicial y fecha
         orderModel.setStateOrder(Constants.PENDING);
         orderModel.setDateOrder(LocalDate.now());
 
-        return orderPersistencePort.saveOrder(orderModel);
+        OrderModel createdOrder = orderPersistencePort.saveOrder(orderModel);
+
+        logTraceability(createdOrder, null, Constants.PENDING, null, null);
+
+        return createdOrder;
     }
-
-
-
 
     @Override
     public Optional<OrderModel> getOrderById(Long idOrder) {
@@ -74,111 +59,154 @@ public class OrderUseCase implements IOrderServicePort {
         return orderPersistencePort.getOrdersByChefId(chefId);
     }
 
+    @Override
     public Page<OrderModel> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable) {
-        if (stateOrder == null || stateOrder.isBlank()) {
-            throw new IllegalArgumentException("State order is required.");
-        }
-
-        if (idRestaurant == null) {
-            throw new IllegalArgumentException("Restaurant ID is required.");
-        }
-
+        validateRestaurantAndState(stateOrder, idRestaurant);
         return orderPersistencePort.getOrdersByStateAndRestaurant(stateOrder, idRestaurant, pageable);
     }
 
     @Override
     public OrderModel assignEmployeeToOrder(Long orderId, Long employeeId) {
-        // Obtener el pedido con todas las relaciones
-        OrderModel order = orderPersistencePort.getOrderById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        OrderModel order = getOrderByIdOrThrow(orderId);
+        validatorServicePort.validatePendingOrder(order);
 
-        // Validar que el pedido no esté en estado "Entregado"
-        if (Constants.DELIVERED.equals(order.getStateOrder())) {
-            throw new IllegalStateException("Delivered orders cannot be modified.");
-        }
+        UserDto employee = getUserById(employeeId);
 
-        // Validar que el pedido esté en estado "PENDIENTE"
-        if (!Constants.PENDING.equals(order.getStateOrder())) {
-            throw new IllegalStateException("Only orders in 'PENDING' state can be assigned.");
-        }
-
-        // Asignar el empleado y cambiar el estado del pedido
+        updateOrderState(order, Constants.IN_PREPARATION);
         order.setChefId(employeeId);
-        order.setStateOrder(Constants.IN_PREPARATION);
 
-        // Guardar el pedido y sus relaciones
+        logTraceability(order, Constants.PENDING, Constants.IN_PREPARATION, employeeId, employee.getEmail());
+
         return orderPersistencePort.saveOrder(order);
     }
 
-
-
     @Override
     public OrderModel markOrderAsReadyAndNotify(Long orderId) {
-        // Obtener el pedido
-        OrderModel order = orderPersistencePort.getOrderById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-
-        // Validar que el pedido no esté en estado "Entregado"
-        if (Constants.DELIVERED.equals(order.getStateOrder())) {
-            throw new IllegalStateException("Delivered orders cannot be modified.");
-        }
-
-        // Validar que el pedido esté en estado "EN_PREPARACIÓN"
-        if (!Constants.IN_PREPARATION.equals(order.getStateOrder())) {
-            throw new IllegalStateException("Only orders in 'IN_PREPARATION' state can be marked as ready.");
-        }
-
-        // Generar PIN y asignarlo al pedido
+        OrderModel order = getOrderByIdOrThrow(orderId);
+        validateState(order, Constants.IN_PREPARATION);
         String pin = generatePin();
+        updateOrderState(order, Constants.READY);
         order.setSecurityPin(pin);
 
-        // Cambiar el estado a "Listo"
-        order.setStateOrder(Constants.READY);
-
-        // Guardar el pedido con el PIN generado
-        OrderModel updatedOrder = orderPersistencePort.saveOrder(order);
-
-        // Obtener información del cliente desde el microservicio Usuario
-        UserDto customer = userClientPort.getUserById(order.getCustomerId());
-        if (customer == null || customer.getPhoneNumber() == null) {
-            throw new IllegalStateException("Customer information is missing.");
+        notifyCustomer(order.getCustomerId(), pin);
+        // Obtener el correo del empleado
+        String emailEmployee = null;
+        if (order.getChefId() != null) {
+            UserDto employee = getUserById(order.getChefId());
+            emailEmployee = employee.getEmail();
         }
+        // Registrar trazabilidad
+        logTraceability(order, Constants.IN_PREPARATION, Constants.READY, order.getChefId(), emailEmployee);
 
-        // Enviar notificación SMS con el PIN
-        String message = String.format("Your order is ready! Please use PIN: %s to collect it.", pin);
-        smsClientPort.sendSms(customer.getPhoneNumber(), message);
-
-        return updatedOrder;
-    }
-
-
-    private String generatePin() {
-        return String.valueOf((int) (Math.random() * 9000) + 1000); // PIN de 4 dígitos
+        return orderPersistencePort.saveOrder(order);
     }
 
 
     @Override
     public OrderModel markOrderAsDelivered(Long orderId, String providedPin) {
-        // Obtener el pedido por ID
-        OrderModel order = orderPersistencePort.getOrderById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        OrderModel order = getOrderByIdOrThrow(orderId);
+        validateState(order, Constants.READY);
+        validatePin(order.getSecurityPin(), providedPin);
 
-        // Validar que el estado actual sea "Listo"
-        if (!Constants.READY.equals(order.getStateOrder())) {
-            throw new IllegalStateException("Only orders in 'READY' state can be marked as delivered.");
-        }
+        updateOrderState(order, Constants.DELIVERED);
 
-        // Validar el PIN de seguridad
-        if (!order.getSecurityPin().equals(providedPin)) {
-            throw new IllegalStateException("Invalid security PIN.");
-        }
+        UserDto employee = getUserById(order.getChefId());
+        logTraceability(order, Constants.READY, Constants.DELIVERED, order.getChefId(), employee.getEmail());
 
-        // Cambiar el estado a "Entregado"
-        order.setStateOrder(Constants.DELIVERED);
-
-        // Guardar los cambios
         return orderPersistencePort.saveOrder(order);
     }
 
+    @Override
+    public OrderModel cancelOrder(Long orderId, Long customerId) {
+        OrderModel order = getOrderByIdOrThrow(orderId);
+
+        if (!order.getCustomerId().equals(customerId)) {
+            throw new IllegalStateException("You can only cancel your own orders.");
+        }
+
+        validatorServicePort.validatePendingOrder(order);
+
+        updateOrderState(order, Constants.CANCELED);
+
+        logTraceability(order, Constants.PENDING, Constants.CANCELED, null, null);
+
+        return orderPersistencePort.saveOrder(order);
+    }
+
+    // Métodos Auxiliares
+
+    private void validateCreateOrder(OrderModel orderModel) {
+        if (orderModel.getRestaurant() == null || orderModel.getRestaurant().getIdRestaurant() == null) {
+            throw new IllegalArgumentException("Restaurant ID is required.");
+        }
+        validatorServicePort.validateOrder(orderModel);
+    }
+
+    private void validateRestaurantAndState(String stateOrder, Long idRestaurant) {
+        if (stateOrder == null || stateOrder.isBlank()) {
+            throw new IllegalArgumentException("State order is required.");
+        }
+        if (idRestaurant == null) {
+            throw new IllegalArgumentException("Restaurant ID is required.");
+        }
+    }
+
+    private void validateState(OrderModel order, String expectedState) {
+        if (!expectedState.equals(order.getStateOrder())) {
+            throw new IllegalStateException("Order must be in state " + expectedState + ".");
+        }
+    }
+
+    private void validatePin(String actualPin, String providedPin) {
+        if (!actualPin.equals(providedPin)) {
+            throw new IllegalStateException("Invalid security PIN.");
+        }
+    }
+
+    private OrderModel getOrderByIdOrThrow(Long orderId) {
+        return orderPersistencePort.getOrderById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+    }
+
+    private void updateOrderState(OrderModel order, String newState) {
+        order.setStateOrder(newState);
+    }
+
+    private Long getAuthenticatedUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (Long) authentication.getDetails();
+    }
+
+    private UserDto getUserById(Long userId) {
+        return userClientPort.getUserById(userId);
+    }
+
+    private void notifyCustomer(Long customerId, String pin) {
+        UserDto customer = getUserById(customerId);
+        if (customer.getPhoneNumber() == null) {
+            throw new IllegalStateException("Customer information is missing.");
+        }
+        String message = String.format("Your order is ready! Please use PIN: %s to collect it.", pin);
+        smsClientPort.sendSms(customer.getPhoneNumber(), message);
+    }
+
+    private void logTraceability(OrderModel order, String previousState, String newState, Long employeeId, String emailEmployee) {
+        TraceabilityRequestDto traceabilityRequest = TraceabilityRequestDto.builder()
+                .idOrder(order.getIdOrder())
+                .customerId(order.getCustomerId())
+                .emailCustomer(getUserById(order.getCustomerId()).getEmail())
+                .previousState(previousState)
+                .newState(newState)
+                .employeeId(employeeId)
+                .emailEmployee(emailEmployee)
+                .build();
+        traceabilityFeignClient.logTraceability(traceabilityRequest);
+    }
+
+    private String generatePin() {
+        return RANDOM.nextInt(9000) + 1000 + ""; // Genera un PIN de 4 dígitos
+    }
 
 }
+
+

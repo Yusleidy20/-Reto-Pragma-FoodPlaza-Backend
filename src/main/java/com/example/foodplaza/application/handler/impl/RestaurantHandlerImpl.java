@@ -9,8 +9,7 @@ import com.example.foodplaza.application.mapper.response.IRestaurantResponseMapp
 import com.example.foodplaza.domain.api.IRestaurantServicePort;
 import com.example.foodplaza.domain.model.RestaurantModel;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,6 @@ public class RestaurantHandlerImpl implements IRestaurantHandlerPort {
     private final IRestaurantRequestMapper restaurantRequestMapper;
 
     private final IRestaurantResponseMapper restaurantResponseMapper;
-    private static final Logger log = LoggerFactory.getLogger(RestaurantHandlerImpl.class);
 
 
     @Override
@@ -51,11 +49,16 @@ public class RestaurantHandlerImpl implements IRestaurantHandlerPort {
     }
 
 
-
-
     @Override
     public RestaurantResponseDto getRestaurantById(Long idRestaurant) {
-        return restaurantResponseMapper.toRestaurantResponse(restaurantServicePort.getRestaurantById(idRestaurant));
+        RestaurantModel restaurantModel = restaurantServicePort.getRestaurantById(idRestaurant);
+
+        return restaurantResponseMapper.toRestaurantResponse(restaurantModel);
+    }
+
+    @Override
+    public List<Long> getOrderIdsByRestaurantId(Long idRestaurant) {
+        return restaurantServicePort.getOrderIdsByRestaurantId(idRestaurant);
     }
 
     @Override

@@ -4,10 +4,10 @@ import com.example.foodplaza.application.dto.request.OrderDishRequestDto;
 import com.example.foodplaza.application.dto.request.OrderRequestDto;
 import com.example.foodplaza.domain.model.OrderDishModel;
 import com.example.foodplaza.domain.model.OrderModel;
-import com.example.foodplaza.domain.model.RestaurantModel;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+
 
 import java.util.List;
 

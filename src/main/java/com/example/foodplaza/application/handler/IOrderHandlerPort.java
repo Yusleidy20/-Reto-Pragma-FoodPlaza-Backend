@@ -10,9 +10,10 @@ import java.util.List;
 public interface IOrderHandlerPort {
     OrderResponseDto createOrder(OrderRequestDto orderRequestDto);
     OrderResponseDto getOrderById(Long idOrder);
-    List<OrderResponseDto> getOrdersByChefId(Long chefId);
     Page<OrderResponseDto> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable);
     OrderResponseDto assignEmployeeToOrder(Long orderId, Long employeeId);
     OrderResponseDto markOrderAsReadyAndNotify(Long orderId);
     OrderResponseDto markOrderAsDelivered(Long orderId, String securityPin);
+    OrderResponseDto cancelOrder(Long orderId, Long customerId);
+
 }

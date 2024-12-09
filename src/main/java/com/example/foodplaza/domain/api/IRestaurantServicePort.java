@@ -18,4 +18,5 @@ public interface IRestaurantServicePort {
 
     Page<RestaurantDto> getRestaurantsWithPaginationAndSorting(int page, int size, String sortBy);
     void deleteRestaurantById(Long id);
+    List<Long> getOrderIdsByRestaurantId(Long idRestaurant);
 }

@@ -18,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -76,6 +77,20 @@ public class OrderRestController {
         OrderResponseDto updatedOrder = orderHandler.markOrderAsDelivered(orderId, securityPin);
         return ResponseEntity.ok(updatedOrder);
     }
+    @PutMapping("/orders/{orderId}/cancel")
+    @PreAuthorize("hasAuthority('Customer')")
+    public ResponseEntity<OrderResponseDto> cancelOrder(
+            @PathVariable Long orderId,
+            Principal principal) {
+        // Recuperar el ID del usuario desde el contexto de seguridad
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long customerId = (Long) authentication.getDetails(); // Cambia según cómo almacenas el ID en tu filtro
+
+        // Llamar al handler para cancelar el pedido
+        OrderResponseDto updatedOrder = orderHandler.cancelOrder(orderId, customerId);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
 
     @GetMapping("/{idOrder}")
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long idOrder) {

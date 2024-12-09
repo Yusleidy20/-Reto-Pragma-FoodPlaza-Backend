@@ -51,11 +51,6 @@ public class DishHandlerImpl implements IDishHandlerPort {
     }
 
     @Override
-    public DishResponseDto getDishById(Long idDish) {
-        return dishResponseMapper.toDishResponse(dishServicePort.getDishById(idDish));
-    }
-
-    @Override
     public List<DishListResponseDto> listDishes(Pageable pageable, Long idCategory, Long idRestaurant) {
         Page<DishModel> dishes = dishServicePort.listDish(pageable, idCategory, idRestaurant);
 

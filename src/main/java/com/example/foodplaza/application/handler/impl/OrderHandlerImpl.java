@@ -38,8 +38,6 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
     }
 
 
-
-
     @Override
     public OrderResponseDto markOrderAsReadyAndNotify(Long orderId) {
         // Llamar al caso de uso para marcar como listo y notificar
@@ -53,6 +51,15 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
         OrderModel updatedOrder = orderServicePort.markOrderAsDelivered(orderId, securityPin);
         return orderResponseMapper.toDto(updatedOrder);
     }
+    @Override
+    public OrderResponseDto cancelOrder(Long orderId, Long customerId) {
+        // Llamar al caso de uso para cancelar el pedido
+        OrderModel canceledOrder = orderServicePort.cancelOrder(orderId, customerId);
+
+        // Convertir el modelo actualizado a DTO de respuesta
+        return orderResponseMapper.toDto(canceledOrder);
+    }
+
 
 
     @Override
@@ -69,11 +76,6 @@ public class OrderHandlerImpl implements IOrderHandlerPort {
 
         // Convertir el modelo a DTO usando el mapper
         return orderResponseMapper.toDto(orderModel);
-    }
-
-    @Override
-    public List<OrderResponseDto> getOrdersByChefId(Long chefId) {
-        return List.of();
     }
 
 

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,9 +49,17 @@ public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
     @Override
     public RestaurantModel getRestaurantById(Long idRestaurant) {
         Optional<RestaurantEntity> optionalRestaurantEntity = restaurantRepositoryMySql.findById(idRestaurant);
-        RestaurantEntity restaurantEntity = optionalRestaurantEntity.orElse(null);
-        return restaurantEntityMapper.toRestaurantModel(restaurantEntity);
+        log.info("Fetched RestaurantEntity: {}", optionalRestaurantEntity);
+
+        if (optionalRestaurantEntity.isEmpty()) {
+            throw new NoSuchElementException("Restaurant with ID " + idRestaurant + " not found.");
+        }
+
+        return restaurantEntityMapper.toRestaurantModel(optionalRestaurantEntity.get());
     }
+
+
+
 
     @Override
     public RestaurantModel getRestaurantByIdOwner(Long ownerId) {
@@ -77,6 +86,11 @@ public class RestaurantAdapterImpl implements IRestaurantPersistencePort {
         return restaurantRepositoryMySql.findAll().stream()
                 .map(this::convertToModel)
                 .toList(); // Lista inmutable y más eficiente
+    }
+
+    @Override
+    public List<Long> getOrderIdsByRestaurantId(Long idRestaurant) {
+        return restaurantRepositoryMySql.findOrderIdsByRestaurantId(idRestaurant);
     }
 
     @Override

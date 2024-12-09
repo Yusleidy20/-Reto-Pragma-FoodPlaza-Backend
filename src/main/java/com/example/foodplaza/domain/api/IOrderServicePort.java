@@ -15,5 +15,6 @@ public interface IOrderServicePort {
     Page<OrderModel> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable);
     OrderModel assignEmployeeToOrder(Long orderId, Long employeeId);
     OrderModel markOrderAsDelivered(Long orderId, String providedPin);
+    OrderModel cancelOrder(Long orderId, Long customerId);
 
 }

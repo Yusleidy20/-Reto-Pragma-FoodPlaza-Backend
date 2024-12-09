@@ -28,16 +28,13 @@ import java.util.List;
 public class RestaurantRestController {
     private final IRestaurantHandlerPort restaurantHandlerPort;
     private final IUserFeignClient userFeignClient;
-    private static final Logger log = LoggerFactory.getLogger(RestaurantRestController.class);
 
     private final IRoleFeignClient roleFeignClient;
 
     @PostMapping("/restaurant")
     @PreAuthorize("hasAuthority('Administrator')")
     public ResponseEntity<String> createRestaurant(@Valid @RequestBody RestaurantRequestDto restaurantRequestDto) {
-        log.info("Data received in RestaurantRequestDto: {}", restaurantRequestDto);
         restaurantHandlerPort.saveRestaurant(restaurantRequestDto);
-        log.info("Restaurant registered successfully.");
         return new ResponseEntity<>("Restaurant created successfully.", HttpStatus.CREATED);
     }
 
@@ -51,9 +48,23 @@ public class RestaurantRestController {
             @RequestParam int size) {
         // Llamar al handler para obtener los restaurantes con paginación
         Page<RestaurantDto> restaurantsPage = restaurantHandlerPort.getRestaurants(page, size);
-
-        // Devolver los restaurantes como respuesta
         return new ResponseEntity<>(restaurantsPage.getContent(), HttpStatus.OK);
     }
+    @GetMapping("/restaurant/{idRestaurant}")
+    @PreAuthorize("hasAuthority('Owner')") // Solo usuarios con el rol 'Owner' pueden acceder
+    public ResponseEntity<RestaurantResponseDto> getRestaurantById(@PathVariable Long idRestaurant) {
+        RestaurantResponseDto restaurant = restaurantHandlerPort.getRestaurantById(idRestaurant);
+        return ResponseEntity.ok(restaurant);
+    }
+    @GetMapping("/restaurant/{idRestaurant}/orders")
+    @PreAuthorize("hasAuthority('Owner')") // Solo usuarios con el rol 'Customer' pueden acceder
+    public ResponseEntity<List<Long>> getOrderIdsByRestaurantId(@PathVariable Long idRestaurant) {
+
+        // Llamar al servicio para obtener los IDs de los pedidos asociados a este restaurante
+        List<Long> orderIds = restaurantHandlerPort.getOrderIdsByRestaurantId(idRestaurant);
+
+        return ResponseEntity.ok(orderIds);
+    }
+
 
 }

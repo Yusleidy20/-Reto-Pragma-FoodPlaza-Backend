@@ -16,6 +16,8 @@ public class RestaurantModel {
     private String phoneNumber;
     private String urlLogo;
     private Long ownerId;
-
+    public RestaurantModel(Long idRestaurant) {
+        this.idRestaurant = idRestaurant;
+    }
 
 }

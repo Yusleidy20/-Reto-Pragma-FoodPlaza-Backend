@@ -12,8 +12,8 @@ public interface IRestaurantHandlerPort {
     void saveRestaurant(RestaurantRequestDto restaurantRequestDto);
     Page<RestaurantDto> getRestaurants(int page, int size);
     RestaurantResponseDto getRestaurantById(Long idRestaurant);
+    List<Long> getOrderIdsByRestaurantId(Long idRestaurant);
     RestaurantResponseDto getRestaurantByIdOwner(Long ownerId);
-
     List<RestaurantResponseDto> getAllRestaurants();
     void deleteRestaurantById(Long idRestaurant);
 

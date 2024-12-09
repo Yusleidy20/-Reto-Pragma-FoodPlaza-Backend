@@ -15,4 +15,5 @@ public interface IOrderPersistencePort {
     boolean hasActiveOrders(Long chefId);
     Page<OrderModel> getOrdersByStateAndRestaurant(String stateOrder, Long idRestaurant, Pageable pageable);
 
+
 }

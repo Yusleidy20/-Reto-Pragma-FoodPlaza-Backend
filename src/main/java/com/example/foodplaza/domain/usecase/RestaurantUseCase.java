@@ -58,8 +58,10 @@ public class RestaurantUseCase implements IRestaurantServicePort {
 
     @Override
     public RestaurantModel getRestaurantById(Long idRestaurant) {
+        log.info("Fetching restaurant by ID: {}", idRestaurant);
         return restaurantPersistencePort.getRestaurantById(idRestaurant);
     }
+
 
     @Override
     public RestaurantModel getRestaurantByIdOwner(Long ownerId) {
@@ -100,5 +102,10 @@ public class RestaurantUseCase implements IRestaurantServicePort {
     @Override
     public void deleteRestaurantById(Long  idRestaurant) {
         restaurantPersistencePort.getRestaurantById( idRestaurant);
+    }
+
+    @Override
+    public List<Long> getOrderIdsByRestaurantId(Long idRestaurant) {
+        return restaurantPersistencePort.getOrderIdsByRestaurantId(idRestaurant);
     }
 }

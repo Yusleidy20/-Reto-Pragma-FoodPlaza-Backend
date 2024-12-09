@@ -12,8 +12,10 @@ import com.example.foodplaza.domain.spi.persistence.*;
 import com.example.foodplaza.domain.usecase.*;
 import com.example.foodplaza.infrastructure.out.jpa.adapter.*;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter.SmsClientFeignAdapter;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter.TraceabilityAdapterImpl;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.adapter.UserFeignAdapter;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ISmsFeignClient;
+import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ITraceabilityFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserDtoMapper;
 import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.IUserFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.*;
@@ -90,8 +92,9 @@ public class ConfigurationBean {
                                               IOrderDishPersistencePort orderDishPersistencePort,
                                               IValidatorServicePort validatorServicePort,
                                               IUserFeignClient userClientPort,
-                                              ISmsClientPort smsClientPort) {
-        return new OrderUseCase(orderPersistencePort, orderDishPersistencePort, validatorServicePort, userClientPort, smsClientPort);
+                                              ISmsClientPort smsClientPort,
+                                              ITraceabilityFeignClient traceabilityFeignClient) {
+        return new OrderUseCase(orderPersistencePort, orderDishPersistencePort, validatorServicePort, userClientPort, smsClientPort, traceabilityFeignClient);
     }
 
     @Bean
@@ -104,6 +107,10 @@ public class ConfigurationBean {
     public IOrderDishPersistencePort orderDishPersistencePort(IOrderDishRepository orderDishRepository,
                                                               IOrderDishEntityMapper orderDishEntityMapper) {
         return new OrderDishAdapterImpl(orderDishRepository, orderDishEntityMapper);
+    }
+    @Bean
+    public ITraceabilityServicePort traceabilityServicePort(ITraceabilityFeignClient traceabilityFeignClient) {
+        return new TraceabilityAdapterImpl(traceabilityFeignClient);
     }
 
 }
