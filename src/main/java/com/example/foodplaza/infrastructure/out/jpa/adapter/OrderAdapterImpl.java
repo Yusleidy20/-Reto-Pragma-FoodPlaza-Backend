@@ -10,7 +10,6 @@ import com.example.foodplaza.infrastructure.out.jpa.entity.DishEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.OrderDishEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.OrderEntity;
 import com.example.foodplaza.infrastructure.out.jpa.entity.RestaurantEntity;
-import com.example.foodplaza.infrastructure.out.jpa.feignclients.mapper.ITraceabilityFeignClient;
 import com.example.foodplaza.infrastructure.out.jpa.mapper.IOrderEntityMapper;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IDishRepository;
 import com.example.foodplaza.infrastructure.out.jpa.repository.IOrderRepository;
@@ -30,26 +29,17 @@ public class OrderAdapterImpl implements IOrderPersistencePort {
 
     @Override
     public OrderModel saveOrder(OrderModel orderModel) {
-
         // Validar que el PIN esté presente si el estado es READY
         if (Constants.DELIVERED.equals(orderModel.getStateOrder()) && (orderModel.getSecurityPin() == null || orderModel.getSecurityPin().isEmpty())) {
             throw new IllegalArgumentException("Security PIN is required for orders in READY state.");
         }
-
-        // Usar mapToEntity para convertir manualmente
         OrderEntity orderEntity = mapToEntity(orderModel);
-
-        // Configurar relaciones para los platos
         List<OrderDishEntity> dishEntities = orderModel.getOrderDishes().stream()
                 .map(this::mapOrderDishToEntity)
                 .toList();
         dishEntities.forEach(dish -> dish.setOrders(orderEntity));
         orderEntity.setOrderDishes(dishEntities);
-
-        // Guardar en la base de datos
         OrderEntity savedEntity = orderRepository.save(orderEntity);
-
-        // Convertir de vuelta a modelo para la respuesta
         return mapToModelWithDishes(savedEntity);
     }
 

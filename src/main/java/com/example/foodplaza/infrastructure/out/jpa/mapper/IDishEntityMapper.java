@@ -10,8 +10,8 @@ import org.mapstruct.ReportingPolicy;
 
 @Mapper(
         componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE, // Ignorar propiedades no mapeadas en el destino
-        unmappedSourcePolicy = ReportingPolicy.IGNORE // Ignorar propiedades no mapeadas en el origen
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE
 )
 public interface IDishEntityMapper {
 

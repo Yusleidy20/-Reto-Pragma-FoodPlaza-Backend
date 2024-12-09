@@ -1,6 +1,8 @@
 package com.example.foodplaza.domain.usecase;
 
 
+import com.example.foodplaza.application.dto.response.RestaurantDto;
+import com.example.foodplaza.domain.exception.RestaurantNotFoundException;
 import com.example.foodplaza.domain.exception.RestaurantValidationException;
 import com.example.foodplaza.domain.exception.UserNotExistException;
 import com.example.foodplaza.domain.model.RestaurantModel;
@@ -12,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,15 +56,12 @@ class RestaurantUseCaseTest {
      */
     @Test
     void saveRestaurant_shouldSaveRestaurant_whenOwnerExistsAndNitIsUnique() {
-        // Configuración de mocks
         when(userFeignClient.existsUserById(restaurantModel.getOwnerId())).thenReturn(true);
         when(restaurantPersistencePort.existsByNit(restaurantModel.getNit())).thenReturn(false);
         when(restaurantPersistencePort.saveRestaurant(restaurantModel)).thenReturn(restaurantModel);
 
-        // Acción
         restaurantUseCase.saveRestaurant(restaurantModel);
 
-        // Verificaciones
         verify(userFeignClient).existsUserById(restaurantModel.getOwnerId());
         verify(restaurantPersistencePort).existsByNit(restaurantModel.getNit());
         verify(restaurantPersistencePort).saveRestaurant(restaurantModel);
@@ -70,10 +72,8 @@ class RestaurantUseCaseTest {
      */
     @Test
     void saveRestaurant_shouldThrowException_whenOwnerDoesNotExist() {
-        // Configuración de mocks
         when(userFeignClient.existsUserById(restaurantModel.getOwnerId())).thenReturn(false);
 
-        // Acción y verificación
         UserNotExistException exception = assertThrows(UserNotExistException.class, () -> {
             restaurantUseCase.saveRestaurant(restaurantModel);
         });
@@ -88,11 +88,9 @@ class RestaurantUseCaseTest {
      */
     @Test
     void saveRestaurant_shouldThrowException_whenNitIsAlreadyRegistered() {
-        // Configuración de mocks
         when(userFeignClient.existsUserById(restaurantModel.getOwnerId())).thenReturn(true);
         when(restaurantPersistencePort.existsByNit(restaurantModel.getNit())).thenReturn(true);
 
-        // Acción y verificación
         RestaurantValidationException exception = assertThrows(RestaurantValidationException.class, () -> {
             restaurantUseCase.saveRestaurant(restaurantModel);
         });
@@ -108,13 +106,10 @@ class RestaurantUseCaseTest {
      */
     @Test
     void getRestaurantById_shouldReturnRestaurant_whenRestaurantExists() {
-        // Configuración de mocks
         when(restaurantPersistencePort.getRestaurantById(1L)).thenReturn(restaurantModel);
 
-        // Acción
         RestaurantModel result = restaurantUseCase.getRestaurantById(1L);
 
-        // Verificaciones
         assertEquals(restaurantModel, result);
         verify(restaurantPersistencePort).getRestaurantById(1L);
     }
@@ -124,14 +119,24 @@ class RestaurantUseCaseTest {
      */
     @Test
     void getRestaurantByIdOwner_shouldReturnRestaurant_whenOwnerHasARestaurant() {
-        // Configuración de mocks
         when(restaurantPersistencePort.getRestaurantByIdOwner(2L)).thenReturn(restaurantModel);
 
-        // Acción
         RestaurantModel result = restaurantUseCase.getRestaurantByIdOwner(2L);
 
-        // Verificaciones
         assertEquals(restaurantModel, result);
+        verify(restaurantPersistencePort).getRestaurantByIdOwner(2L);
+    }
+
+    /**
+     * Verifica que el método retorna null si un propietario no tiene restaurantes asociados.
+     */
+    @Test
+    void getRestaurantByIdOwner_shouldReturnNull_whenOwnerHasNoRestaurant() {
+        when(restaurantPersistencePort.getRestaurantByIdOwner(2L)).thenReturn(null);
+
+        RestaurantModel result = restaurantUseCase.getRestaurantByIdOwner(2L);
+
+        assertNull(result);
         verify(restaurantPersistencePort).getRestaurantByIdOwner(2L);
     }
 
@@ -140,29 +145,48 @@ class RestaurantUseCaseTest {
      */
     @Test
     void getAllRestaurants_shouldReturnEmptyList_whenNoRestaurantsExist() {
-        // Configuración de mocks
         when(restaurantPersistencePort.getAllRestaurants()).thenReturn(Collections.emptyList());
 
-        // Acción
         List<RestaurantModel> result = restaurantUseCase.getAllRestaurants();
 
-        // Verificaciones
         assertTrue(result.isEmpty());
         verify(restaurantPersistencePort).getAllRestaurants();
     }
 
     /**
-     * Verifica que el método para eliminar un restaurante invoca el puerto de persistencia.
+     * Verifica que el método para eliminar un restaurante lanza una excepción si no existe.
      */
     @Test
-    void deleteRestaurantById_shouldCallPersistencePort() {
-        // Configuración de mocks
-        when(restaurantPersistencePort.getRestaurantById(1L)).thenReturn(restaurantModel);
+    void deleteRestaurantById_shouldThrowException_whenRestaurantDoesNotExist() {
+        when(restaurantPersistencePort.getRestaurantById(1L)).thenThrow(new RestaurantNotFoundException("Restaurant not found."));
 
-        // Acción
-        restaurantUseCase.deleteRestaurantById(1L);
+        RestaurantNotFoundException exception = assertThrows(RestaurantNotFoundException.class, () -> {
+            restaurantUseCase.deleteRestaurantById(1L);
+        });
 
-        // Verificaciones
+        assertEquals("Restaurant not found.", exception.getMessage());
         verify(restaurantPersistencePort).getRestaurantById(1L);
+        verifyNoMoreInteractions(restaurantPersistencePort);
+    }
+
+    /**
+     * Verifica que se obtienen restaurantes paginados y ordenados correctamente.
+     */
+    @Test
+    void getRestaurantsWithPaginationAndSorting_shouldReturnFilteredRestaurants() {
+        Pageable pageable = PageRequest.of(0, 2, Sort.by("nameRestaurant").ascending());
+        List<RestaurantDto> restaurants = Arrays.asList(
+                new RestaurantDto("Test Restaurant 1", "http://test.com/logo1.png"),
+                new RestaurantDto("Test Restaurant 2", "http://test.com/logo2.png")
+        );
+        Page<RestaurantDto> restaurantPage = new PageImpl<>(restaurants, pageable, restaurants.size());
+
+        when(restaurantPersistencePort.getRestaurantsWithPaginationAndSorting(pageable)).thenReturn(restaurantPage);
+
+        Page<RestaurantDto> result = restaurantUseCase.getRestaurantsWithPaginationAndSorting(0, 2, "nameRestaurant");
+
+        assertEquals(2, result.getContent().size());
+        assertEquals("Test Restaurant 1", result.getContent().get(0).getNameRestaurant());
+        verify(restaurantPersistencePort).getRestaurantsWithPaginationAndSorting(pageable);
     }
 }
