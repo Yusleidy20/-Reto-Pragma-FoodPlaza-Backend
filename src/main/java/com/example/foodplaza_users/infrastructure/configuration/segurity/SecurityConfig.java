@@ -31,10 +31,12 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/user-micro/user/login").permitAll() // Público
-                        .requestMatchers("/user-micro/user/customer").permitAll() // Público
-                        .requestMatchers("/user-micro/user/admin").hasAuthority("Administrator") // Solo administradores
-                        .requestMatchers("/user-micro/user/owner").hasAuthority("Administrator") // Solo administradores
+                        .requestMatchers("/user-micro/user/login").permitAll()
+                        .requestMatchers("/user-micro/user/customer").permitAll()
+                        .requestMatchers("/user-micro/user/").permitAll()
+                        .requestMatchers("/user-micro/roles/").permitAll()
+                        .requestMatchers("/user-micro/user/admin").permitAll()
+                        .requestMatchers("/user-micro/user/owner").hasAuthority("Administrator")
                         .anyRequest().authenticated() // El resto requiere autenticación
                 )
                 .addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class)
@@ -45,8 +47,10 @@ public class SecurityConfig {
 
 
 
+    // Configuración del AuthenticationManager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
 }

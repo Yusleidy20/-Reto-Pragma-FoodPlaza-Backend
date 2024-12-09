@@ -12,7 +12,7 @@ import org.mapstruct.ReportingPolicy;
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IUserRequestMapper {
     @Mapping(source = "birthDate", target = "birthDate")
-    @Mapping(source = "idUserRole", target = "userRole.idUserRole")  // Mapea idUserRole al campo anidado
+    @Mapping(source = "idUserRole", target = "userRole.idUserRole")
     UserModel toUserModel(UserRequestDto userRequestDto);
 }
 

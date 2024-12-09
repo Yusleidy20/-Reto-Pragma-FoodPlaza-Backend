@@ -12,8 +12,8 @@ import java.util.*;
 
 public class JwtUtil {
 
-    private static final String ACCESS_TOKEN_SECRET = "S6Do4LIXCN6KGKmbAS8zwVUbAXCIYvqw";
-    private static final Long ACCESS_TOKEN_VALIDITY_SECONDS = 86_400L;
+    private static final String ACCESS_TOKEN_SECRET = System.getenv("ACCESS_TOKEN_SECRET");
+    private static final Long ACCESS_TOKEN_VALIDITY_SECONDS = 2_592_000L; //
 
     private JwtUtil() {
         throw new UnsupportedOperationException("Utility class");
@@ -22,7 +22,7 @@ public class JwtUtil {
     public static String generateToken(String username, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        claims.put("userId", userId); // Agregar el userId al token
+        claims.put("userId", userId);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -36,6 +36,7 @@ public class JwtUtil {
 
 
 
+
     public static boolean validateToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
@@ -43,7 +44,7 @@ public class JwtUtil {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            return !claims.getExpiration().before(new Date()); // Verificar que no haya expirado
+            return !claims.getExpiration().before(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             return false; // Token inválido o expirado
         }

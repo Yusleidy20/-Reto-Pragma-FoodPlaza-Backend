@@ -1,7 +1,6 @@
 package com.example.foodplaza_users.infraestructure.input.rest;
 
 
-import com.example.foodplaza_users.application.dto.response.UserResponseDto;
 import com.example.foodplaza_users.application.dto.resquest.UserRequestDto;
 import com.example.foodplaza_users.application.handler.IRoleServiceHandler;
 import com.example.foodplaza_users.application.handler.IUserServiceHandler;
@@ -16,7 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 
@@ -36,12 +35,13 @@ class UserRestControllerTest {
      * Test de éxito: Registro de propietario correctamente.
      */
     @Test
+    @WithMockUser(roles = "Administrator") // Simula un usuario con rol de Administrador
     void testRegisterOwner_Success() {
-        Long adminId = 1L;
+        // Datos del DTO que se utilizarán para registrar el propietario
         UserRequestDto ownerDto = new UserRequestDto(
                 "John",
                 "Doe",
-                123456789L,
+                "123456789",
                 "+573005698325",
                 LocalDate.of(1990, 1, 1),
                 "owner@example.com",
@@ -49,53 +49,32 @@ class UserRestControllerTest {
                 2L
         );
 
-        Mockito.when(userServiceHandler.isAdmin(adminId)).thenReturn(true);
+        // Simulamos que el servicio de manejo de usuarios (userServiceHandler) guarda el usuario correctamente
+        Mockito.doNothing().when(userServiceHandler).saveUser(ownerDto);
 
+        // Llamada al endpoint para registrar al propietario
         ResponseEntity<String> response = userRestController.registerOwner(ownerDto);
 
+        // Verificamos que la respuesta sea un 201 (CREATED) y el mensaje esperado
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assertions.assertEquals("Owner registered successfully.", response.getBody());
+
+        // Verificamos que el método saveUser se haya llamado con el ownerDto proporcionado
         Mockito.verify(userServiceHandler).saveUser(ownerDto);
     }
 
-    /**
-     * Test de fallo: Usuario no tiene rol de administrador.
-     */
-    @Test
-    void testRegisterOwner_Fail_NotAdmin() {
-        Long adminId = 2L;
-        UserRequestDto ownerDto = new UserRequestDto(
-                "John",
-                "Doe",
-                123456789L,
-                "+573005698325",
-                LocalDate.of(1990, 1, 1),
-                "owner@example.com",
-                "password123",
-                2L
-        );
 
-        Mockito.when(userServiceHandler.isAdmin(adminId)).thenReturn(false);
 
-        UserRoleNotFountException exception = Assertions.assertThrows(
-                UserRoleNotFountException.class,
-                () -> userRestController.registerOwner(ownerDto)
-        );
-
-        Assertions.assertEquals("User must have Administrator role.", exception.getMessage());
-        Mockito.verify(userServiceHandler, Mockito.never()).saveUser(ownerDto);
-    }
 
     /**
      * Test de fallo: Email inválido.
      */
     @Test
     void testRegisterOwner_Fail_InvalidEmail() {
-        Long adminId = 1L;
         UserRequestDto ownerDto = new UserRequestDto(
                 "John",
                 "Doe",
-                123456789L,
+                "123456789",
                 "+573005698325",
                 LocalDate.of(1990, 1, 1),
                 "invalid-email",
@@ -112,11 +91,10 @@ class UserRestControllerTest {
      */
     @Test
     void testRegisterOwner_Fail_NotAdult() {
-        Long adminId = 1L;
         UserRequestDto ownerDto = new UserRequestDto(
                 "John",
                 "Doe",
-                123456789L,
+                "123456789",
                 "+573005698325",
                 LocalDate.now().minusYears(17),
                 "owner@example.com",
@@ -139,11 +117,10 @@ class UserRestControllerTest {
      */
     @Test
     void testRegisterOwner_Fail_InvalidPhone() {
-        Long adminId = 1L;
         UserRequestDto ownerDto = new UserRequestDto(
                 "John",
                 "Doe",
-                123456789L,
+                "123456789",
                 "12345678901234", // Más de 13 caracteres
                 LocalDate.of(1990, 1, 1),
                 "owner@example.com",

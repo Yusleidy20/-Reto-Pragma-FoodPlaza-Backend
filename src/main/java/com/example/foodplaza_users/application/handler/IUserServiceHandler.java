@@ -11,5 +11,4 @@ public interface IUserServiceHandler {
     boolean isAdmin(Long userId);
     UserResponseDto getUserById(Long userId);
     UserResponseDto getUserByEmail(String email);
-
 }

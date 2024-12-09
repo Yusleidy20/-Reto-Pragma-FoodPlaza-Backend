@@ -8,10 +8,12 @@ import com.example.foodplaza_users.application.mapper.response.IUserResponseMapp
 import com.example.foodplaza_users.domain.api.IRoleServicePort;
 import com.example.foodplaza_users.domain.api.IUserServicePort;
 
+import com.example.foodplaza_users.domain.exception.UserNotFoundException;
 import com.example.foodplaza_users.domain.model.UserModel;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +25,17 @@ public class UserServiceHandlerImpl implements IUserServiceHandler {
     private final IRoleServicePort roleServicePort;
     private final IUserRequestMapper userRequestMapper;
     private final IUserResponseMapper userResponseMapper;
-    private static final Logger log = LoggerFactory.getLogger(UserServiceHandlerImpl.class);
+    private final PasswordEncoder passwordEncoder; // Inyectamos el PasswordEncoder
 
-    @Override
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceHandlerImpl.class);
+
     public void saveUser(UserRequestDto userRequestDto) {
+        logger.info("UserRequestDto: {}", userRequestDto);
         UserModel userModel = userRequestMapper.toUserModel(userRequestDto);
+        logger.info("UserModel after mapping: {}", userModel);
         userServicePort.saveUser(userModel);
     }
+
 
     @Override
     public UserModel getUserId(Long userId) {
@@ -54,7 +60,6 @@ public class UserServiceHandlerImpl implements IUserServiceHandler {
         UserModel user = getUserId(userId);
         return user.getUserRole() != null && user.getUserRole().getNameRole().equalsIgnoreCase("Administrator");
     }
-
 
 
 }

@@ -17,4 +17,6 @@ public class Constants {
     public static final String ROLE_EMPLOYEE = "Employee";
     public static final String ROLE_CUSTOMER = "Customer";
 
+
+    public static final String ROLE_CUSTOMER_DESCRIPTION = "food court customer";
 }

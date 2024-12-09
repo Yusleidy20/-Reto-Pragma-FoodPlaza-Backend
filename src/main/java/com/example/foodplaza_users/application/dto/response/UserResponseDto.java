@@ -1,5 +1,6 @@
 package com.example.foodplaza_users.application.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,11 +12,12 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserResponseDto {
     private Long userId;
     private String nameUser;
     private String lastname;
-    private Long docId;
+    private String docId;
     private String phoneNumber;
     private LocalDate birthDate;
     private String email;

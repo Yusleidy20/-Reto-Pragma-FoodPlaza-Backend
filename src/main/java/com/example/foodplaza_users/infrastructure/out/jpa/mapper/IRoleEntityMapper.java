@@ -13,6 +13,6 @@ import java.util.List;
 )
 public interface IRoleEntityMapper {
     List<UserRole> toRoleList(List<RoleEntity> roleEntityList);
-    RoleEntity toEntity(UserRole role);
+    RoleEntity toEntity(UserRole userRole);
     UserRole toRoleModel(RoleEntity roleEntity);
 }

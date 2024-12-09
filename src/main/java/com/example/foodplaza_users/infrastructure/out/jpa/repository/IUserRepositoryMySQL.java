@@ -10,5 +10,6 @@ public interface IUserRepositoryMySQL extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByEmail(String email);
     Optional<UserEntity> findById(Long userId);
     boolean existsByEmail(String email);
+    boolean existsByDocId(String docId);
 
 }

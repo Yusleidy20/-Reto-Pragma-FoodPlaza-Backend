@@ -3,6 +3,7 @@ package com.example.foodplaza_users.infrastructure.out.jpa.adapter;
 import com.example.foodplaza_users.domain.model.UserRole;
 import com.example.foodplaza_users.domain.spi.persistence.IUserRolePersistencePort;
 import com.example.foodplaza_users.infrastructure.exception.NoDataFoundException;
+import com.example.foodplaza_users.infrastructure.exception.RoleNotFoundException;
 import com.example.foodplaza_users.infrastructure.out.jpa.entity.RoleEntity;
 import com.example.foodplaza_users.infrastructure.out.jpa.mapper.IRoleEntityMapper;
 import com.example.foodplaza_users.infrastructure.out.jpa.repository.IUserRoleRepositoryMySQL;
@@ -21,9 +22,14 @@ public class RolePersistenceAdapterPortImpl implements IUserRolePersistencePort 
     }
 
     @Override
-    public UserRole saveRole(UserRole userRole) {
-        return roleEntityMapper.toRoleModel(userRoleRepositoryMySQL.save(roleEntityMapper.toEntity(userRole)));
+    public void saveRole(UserRole userRole) {
+        RoleEntity roleEntity = roleEntityMapper.toEntity(userRole);
+        if (roleEntity.getDescriptionRole() == null) {
+            throw new IllegalArgumentException("descriptionRole cannot be null");
+        }
+        roleEntityMapper.toRoleModel(userRoleRepositoryMySQL.save(roleEntity));
     }
+
 
 
     @Override
@@ -42,9 +48,10 @@ public class RolePersistenceAdapterPortImpl implements IUserRolePersistencePort 
 
 
     @Override
-    public UserRole findByRole(Long idUserRole)  {
-        Optional<RoleEntity> roleEntity = userRoleRepositoryMySQL.findById(idUserRole);
-        return roleEntity.map(roleEntityMapper::toRoleModel).orElse(null);
+    public UserRole findByRole(Long idUserRole) {
+        return userRoleRepositoryMySQL.findById(idUserRole)
+                .map(roleEntityMapper::toRoleModel)
+                .orElseThrow(() -> new RoleNotFoundException("Role not found with id: " + idUserRole));
     }
 
 

@@ -23,8 +23,12 @@ public class RoleServiceHandlerImpl implements IRoleServiceHandler {
     @Override
     public void saveRole(RoleRequestDto roleRequestDto) {
         UserRole role = roleRequestMapper.toRoleResponse(roleRequestDto);
+        if (role.getDescriptionRole() == null || role.getNameRole() == null) {
+            throw new IllegalArgumentException("Role fields cannot be null");
+        }
         roleServicePort.saveRole(role);
     }
+
 
     @Override
     public RoleResponseDto getRoleById(Long idUserRole) {
